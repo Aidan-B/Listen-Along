@@ -1,0 +1,26 @@
+{
+  "name": "listen-along",
+  "version": "1.0.0",
+  "description": "Listen to songs on Spotify with your friends. Anyone can add songs to the queue, and the DJ has moderation control.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aidan-B/Listen-Along.git"
+  },
+  "author": "Aidan Bowers",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/Aidan-B/Listen-Along/issues"
+  },
+  "homepage": "https://github.com/Aidan-B/Listen-Along#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "querystring": "^0.2.0",
+    "request": "^2.88.2"
+  }
+}
