@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Example of the Authorization Code flow with Spotify test</title>
+    <title>Example of the Authorization Code flow with Spotify</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <style type="text/css">
       #login, #loggedin {
@@ -28,6 +28,8 @@
         <div id="oauth">
         </div>
         <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
+        <button class="btn btn-default" id="play">Play</button>
+        <button class="btn btn-default" id="pause">Pause</button>
       </div>
     </div>
 
@@ -132,6 +134,34 @@
                 access_token: access_token,
                 refresh_token: refresh_token
               });
+            });
+          }, false);
+          
+          document.getElementById('play').addEventListener('click', function() {
+            console.log("play");
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me/player/play',  
+                type: 'PUT',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                error: function (data, textStatus, xhr) {  
+                    console.log(data);  
+                } 
+            });
+          }, false);
+
+          document.getElementById('pause').addEventListener('click', function() {
+            console.log("pause");
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me/player/pause',  
+                type: 'PUT',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                error: function (data, textStatus, xhr) {  
+                    console.log(data);  
+                } 
             });
           }, false);
         }
