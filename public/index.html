@@ -18,10 +18,6 @@
 
   <body>
     <div class="container">
-      <div id="login">
-        <h1>This is an example of the Authorization Code flow</h1>
-        <a href="/login" class="btn btn-primary">Log in with Spotify</a>
-      </div>
       <div id="loggedin">
         <div id="user-profile">
         </div>
@@ -30,6 +26,18 @@
         <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
         <button class="btn btn-default" id="play">Play</button>
         <button class="btn btn-default" id="pause">Pause</button>
+        <button class="btn btn-default" id="getStatus">Get Status</button>
+        <button class="btn btn-default" id="addToQueue">Add To Queue</button>
+        
+
+        <!-- Basic flow will be as follows:
+        
+          Listeners join a party via a code created by the party "leader"
+          Leader has the queue, everyone's playback is based on what the leader is listening to
+          party members can request to listen to a song by "adding it to the queue"
+          win
+        
+        -->
       </div>
     </div>
 
@@ -111,15 +119,12 @@
                 },
                 success: function(response) {
                   userProfilePlaceholder.innerHTML = userProfileTemplate(response);
-
-                  $('#login').hide();
                   $('#loggedin').show();
                 }
             });
           } else {
-              // render initial screen
-              $('#login').show();
-              $('#loggedin').hide();
+              // jump to sign in page
+              window.location.href = '/login';
           }
 
           document.getElementById('obtain-new-token').addEventListener('click', function() {
@@ -162,6 +167,39 @@
                 error: function (data, textStatus, xhr) {  
                     console.log(data);  
                 } 
+            });
+          }, false);
+
+          document.getElementById('getStatus').addEventListener('click', function() {
+            console.log("getStatus");
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me/player',  
+                type: 'GET',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                error: function (data, textStatus, xhr) {  
+                    console.log(data);  
+                } 
+            }).done(function(data) {
+              console.log(data);
+            });
+          }, false);
+
+          document.getElementById('addToQueue').addEventListener('click', function() {
+            console.log("getStatus");
+            $.ajax({
+                //this uri here is a random song, make sure things match up when doing this
+                url: 'https://api.spotify.com/v1/me/player/queue?uri=spotify:track:6L3VWDPDTQkQFkqvmpAUMU',  
+                type: 'POST',                
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                error: function (data, textStatus, xhr) {  
+                    console.log(data);  
+                } 
+            }).done(function(data) {
+              console.log(data);
             });
           }, false);
         }
