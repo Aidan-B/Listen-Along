@@ -173,13 +173,15 @@
                     console.log(data);  
                 },
                 success:  function (data, textStatus, xhr) {
-                    $('#search-results').html(" ")
+                    $('#search-results').html("");
+                    
                     data.tracks.items.forEach(element => {
+                      let artists = element.artists.map(function(elem){return elem.name;}).join(", ");
                       trackContainer.append(trackTemplate({
                         track_url: element.external_urls.spotify,
                         album_art: element.album.images[1].url,
                         track_name: element.name,
-                        artist_name: element.artists[0].name,
+                        artist_name: artists,
                         spotify_uri: element.uri
                       }));
                     });
