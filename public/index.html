@@ -88,6 +88,16 @@
       </dl>
     </script>
 
+    <script id="track-template" type="text/x-handlebars-template">
+      <div class="card" style="width: 18rem;">
+        <a href="{{track_url}}"><img src="{{album_art}}" class="card-img-top"></a>
+        <div class="card-body">
+          <h5 class="card-title">{{track_name}}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{artist_name}}</h6>
+          <a href="#{{spotify_uri}}" class="card-link">Add Song</a>
+        </div>
+      </div>
+    </script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
@@ -114,6 +124,10 @@
         var oauthSource = document.getElementById('oauth-template').innerHTML,
             oauthTemplate = Handlebars.compile(oauthSource),
             oauthPlaceholder = document.getElementById('oauth');
+
+        var trackSource = document.getElementById('track-template').innerHTML,
+            trackTemplate = Handlebars.compile(trackSource),
+            trackContainer = $('#search-results');
 
         var params = getHashParams();
 
@@ -161,15 +175,15 @@
                 success:  function (data, textStatus, xhr) {
                     $('#search-results').html(" ")
                     data.tracks.items.forEach(element => {
-                    $('#search-results').append(' <div class="card" style="width: 18rem;">\
-                                                    <a href="'+element.external_urls.spotify+'"><img src="' + element.album.images[1].url + '" class="card-img-top"></a>\
-                                                    <div class="card-body">\
-                                                      <h5 class="card-title">' + element.name + '</h5>\
-                                                      <h6 class="card-subtitle mb-2 text-muted">' + element.artists[0].name + '</h6>\
-                                                      <a href="#'+element.uri+'" class="card-link">Add Song</a>\
-                                                    </div>\
-                                                  </div>');
+                      trackContainer.append(trackTemplate({
+                        track_url: element.external_urls.spotify,
+                        album_art: element.album.images[1].url,
+                        track_name: element.name,
+                        artist_name: element.artists[0].name,
+                        spotify_uri: element.uri
+                      }));
                     });
+                      
                 } 
             });
           });
