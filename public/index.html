@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Example of the Authorization Code flow with Spotify</title>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <style type="text/css">
       #login, #loggedin {
         display: none;
@@ -23,19 +23,38 @@
         </div>
         <div id="oauth">
         </div>
-        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
-        <button class="btn btn-default" id="play">Play</button>
-        <button class="btn btn-default" id="pause">Pause</button>
-        <button class="btn btn-default" id="getStatus">Get Status</button>
-        <button class="btn btn-default" id="addToQueue">Add To Queue</button>
+        <button class="btn btn-secondary" id="obtain-new-token">Obtain new token using the refresh token</button>
+        <button class="btn btn-secondary" id="play">Play</button>
+        <button class="btn btn-secondary" id="pause">Pause</button>
+        <button class="btn btn-secondary" id="getStatus">Get Status</button>
+        <button class="btn btn-secondary" id="addToQueue">Add To Queue</button>
         
+        </br></br>
+
+        <form class="form-inline" id="search" action="https://api.spotify.com/v1/search" method="GET">
+          <label for="q">Search for a song: </label>
+          <!-- <select name="type">
+            <option value="track">Song</option>
+            <option value="artist">Artist</option>
+            <option value="album">Album</option>
+          </select> -->
+          <input hidden name="type" value="track">
+          <input hidden name="limit" value="3">
+
+          <input name="q" type="text" class="form-control"> 
+          <input name="submit" type="submit" class="btn btn-primary">
+        </form>
+
+        <div id="search-results" class="card-deck">          
+        </div>
 
         <!-- Basic flow will be as follows:
         
           Listeners join a party via a code created by the party "leader"
           Leader has the queue, everyone's playback is based on what the leader is listening to
           party members can request to listen to a song by "adding it to the queue"
-          win
+          
+          Spotify is controlled only if the leader continues to be active.
         
         -->
       </div>
@@ -126,6 +145,34 @@
               // jump to sign in page
               window.location.href = '/login';
           }
+
+          $('#search').on( "submit", function( event ) {
+            event.preventDefault();
+            console.log("search");
+            $.ajax({
+                url: 'https://api.spotify.com/v1/search?' + $( this ).serialize(),
+                type: 'GET',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                error: function (data, textStatus, xhr) {  
+                    console.log(data);  
+                },
+                success:  function (data, textStatus, xhr) {
+                    $('#search-results').html(" ")
+                    data.tracks.items.forEach(element => {
+                    $('#search-results').append(' <div class="card" style="width: 18rem;">\
+                                                    <a href="'+element.external_urls.spotify+'"><img src="' + element.album.images[1].url + '" class="card-img-top"></a>\
+                                                    <div class="card-body">\
+                                                      <h5 class="card-title">' + element.name + '</h5>\
+                                                      <h6 class="card-subtitle mb-2 text-muted">' + element.artists[0].name + '</h6>\
+                                                      <a href="#'+element.uri+'" class="card-link">Add Song</a>\
+                                                    </div>\
+                                                  </div>');
+                    });
+                } 
+            });
+          });
 
           document.getElementById('obtain-new-token').addEventListener('click', function() {
             $.ajax({
