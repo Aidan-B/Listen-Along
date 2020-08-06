@@ -8,6 +8,10 @@
  */
 
 var express = require('express'); // Express web server framework
+var app = express();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
+
 var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
@@ -15,11 +19,19 @@ var cookieParser = require('cookie-parser');
 
 let clientInfo = require("./clientInfo.json");
 
+let access_token;
+let refresh_token;
+
+
 let client_id = clientInfo.client_id; // Your client id
 let client_secret = clientInfo.client_secret; // Your secret
 let redirect_uri = clientInfo.redirect_uri; // Your redirect uri
 
-let port = 8888;
+let roomId;
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8888;
+}
 
 /**
  * Generates a random string containing numbers and letters
@@ -38,13 +50,17 @@ var generateRandomString = function(length) {
 
 var stateKey = 'spotify_auth_state';
 
-var app = express();
+
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
-//do this when the user click the login button
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
 app.get('/login', function(req, res) {
 
   var state = generateRandomString(16);
@@ -92,34 +108,34 @@ app.get('/callback', function(req, res) {
     };
 
     request.post(authOptions, function(error, response, body) {
-      if (!error && response.statusCode === 200) {
+		if (!error && response.statusCode === 200) {
 
-        var access_token = body.access_token,
-            refresh_token = body.refresh_token;
+			access_token = body.access_token;
+			refresh_token = body.refresh_token;
 
-        var options = {
-          url: 'https://api.spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer ' + access_token },
-          json: true
-        };
+			var options = {
+				url: 'https://api.spotify.com/v1/me',
+				headers: { 'Authorization': 'Bearer ' + access_token },
+				json: true
+			};
 
-        // use the access token to access the Spotify Web API
-        request.get(options, function(error, response, body) {
-          console.log(body);
-        });
-
-        // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
-      } else {
-        res.redirect('/#' +
-          querystring.stringify({
-            error: 'invalid_token'
-          }));
-      }
+			// use the access token to access the Spotify Web API
+			request.get(options, function(error, response, body) {
+				console.log(body);
+			});
+			
+			// we can also pass the token to the browser to make requests from there
+			res.redirect('/#' +
+				querystring.stringify({
+					access_token: access_token,
+					refresh_token: refresh_token
+			}));
+		} else {
+			res.redirect('/' +
+			querystring.stringify({
+				error: 'invalid_token'
+			}));
+		}
     });
   }
 });
@@ -150,7 +166,33 @@ app.get('/refresh_token', function(req, res) {
 
 app.get('/room', function(req, res) {
   res.sendFile(__dirname + '/public/room.html')
+  roomId = req.query.id;
 });
 
-console.log('Listening on ' + port);
-app.listen(port);
+
+http.listen(port, () => {
+    console.log('listening on *:' + port);
+});
+
+io.on('connection', (socket)=> {
+
+	socket.join(roomId);
+	socket.emit('roomId', { "roomId": roomId } ); //Connect user to room
+	let room = io.sockets.adapter.rooms;
+	console.log(room);
+	if (room[roomId].leader == undefined) {room[roomId].leader = socket.id}
+	console.log('user with access token ' + access_token + ' and id ' + socket.id + ' connected to ' + roomId);
+
+	io.to(roomId).emit('roomId', { "roomId" : roomId });
+
+	// socket.on('message', (msg) => {
+	// 	// console.log("restart", msg);
+	// 	//io.to(roomId).emit('restart', { "roomId" : roomId });
+	// });
+
+	socket.on('disconnect', () => {
+		console.log('user '+socket.id+' disconnected');
+		if (room[roomId] != undefined) {console.log(room[roomId].length); }
+	});
+
+});
