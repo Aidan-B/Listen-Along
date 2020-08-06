@@ -3,102 +3,14 @@
   <head>
     <title>Example of the Authorization Code flow with Spotify</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <style type="text/css">
-      #login, #loggedin {
-        display: none;
-      }
-      .text-overflow {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 500px;
-      }
-    </style>
+    <link rel="stylesheet" href="./css/style.css" type="text/css" />
   </head>
 
   <body>
     <div class="container">
-      <div id="loggedin">
-        <div id="user-profile">
-        </div>
-        <div id="oauth">
-        </div>
-        <button class="btn btn-secondary" id="obtain-new-token">Obtain new token using the refresh token</button>
-        <button class="btn btn-secondary" id="play">Play</button>
-        <button class="btn btn-secondary" id="pause">Pause</button>
-        <button class="btn btn-secondary" id="getStatus">Get Status</button>
-        <button class="btn btn-secondary" id="addToQueue">Add To Queue</button>
-        
-        </br></br>
-
-        <form class="form-inline" id="search" action="https://api.spotify.com/v1/search" method="GET">
-          <label for="q">Search for a song: </label>
-          <!-- <select name="type">
-            <option value="track">Song</option>
-            <option value="artist">Artist</option>
-            <option value="album">Album</option>
-          </select> -->
-          <input hidden name="type" value="track">
-          <input hidden name="limit" value="3">
-
-          <input name="q" type="text" class="form-control"> 
-          <input name="submit" type="submit" class="btn btn-primary">
-        </form>
-
-        <div id="search-results" class="card-deck">          
-        </div>
-
-        <!-- Basic flow will be as follows:
-        
-          Listeners join a party via a code created by the party "leader"
-          Leader has the queue, everyone's playback is based on what the leader is listening to
-          party members can request to listen to a song by "adding it to the queue"
-          
-          Spotify is controlled only if the leader continues to be active.
-        
-        -->
-      </div>
+      hi
     </div>
 
-    <script id="user-profile-template" type="text/x-handlebars-template">
-      <h1>Logged in as {{display_name}}</h1>
-      <div class="media">
-        <div class="pull-left">
-          <img class="media-object" width="150" src="{{images.0.url}}" />
-        </div>
-        <div class="media-body">
-          <dl class="dl-horizontal">
-            <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
-            <dt>Id</dt><dd>{{id}}</dd>
-            <dt>Email</dt><dd>{{email}}</dd>
-            <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
-            <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
-            <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
-            <dt>Country</dt><dd>{{country}}</dd>
-          </dl>
-        </div>
-      </div>
-    </script>
-
-    <script id="oauth-template" type="text/x-handlebars-template">
-      <h2>oAuth info</h2>
-      <dl class="dl-horizontal">
-        <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
-        <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
-      </dl>
-    </script>
-
-    <script id="track-template" type="text/x-handlebars-template">
-      <div class="card" style="width: 18rem;">
-        <a href="{{track_url}}"><img src="{{album_art}}" class="card-img-top"></a>
-        <div class="card-body">
-          <h5 class="card-title">{{track_name}}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">{{artist_name}}</h6>
-          <a href="#{{spotify_uri}}" class="card-link">Add Song</a>
-        </div>
-      </div>
-    </script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="index.js"></script>
   </body>

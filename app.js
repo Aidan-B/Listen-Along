@@ -1,9 +1,3 @@
-var clientInfo = require("./clientInfo.json");
-
-
-
-
-
 /**
  * This is an example of a basic node.js script that performs
  * the Authorization Code oAuth2 flow to authenticate against
@@ -19,9 +13,13 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
-var client_id = clientInfo.client_id; // Your client id
-var client_secret = clientInfo.client_secret; // Your secret
-var redirect_uri = clientInfo.redirect_uri; // Your redirect uri
+let clientInfo = require("./clientInfo.json");
+
+let client_id = clientInfo.client_id; // Your client id
+let client_secret = clientInfo.client_secret; // Your secret
+let redirect_uri = clientInfo.redirect_uri; // Your redirect uri
+
+let port = 8888;
 
 /**
  * Generates a random string containing numbers and letters
@@ -150,5 +148,9 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+app.get('/room', function(req, res) {
+  res.sendFile(__dirname + '/public/room.html')
+});
+
+console.log('Listening on ' + port);
+app.listen(port);
