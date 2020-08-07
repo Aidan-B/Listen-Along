@@ -13,6 +13,7 @@ $('#refreshToken').text(refresh_token);
 
 
 socket.on('refreshToken', (msg) => {
+    console.log("refreshing!")
     $.ajax({
         url: '/refresh_token',
         data: {
@@ -26,13 +27,13 @@ socket.on('refreshToken', (msg) => {
             refresh_token: refresh_token
         });
 
-        urlParams.set('access_token', access_token);
-        $('#accessToken').text(access_token);
-
         if (msg.retry !== undefined) {
             msg.retry.data.retry = true;
             socket.emit(msg.retry.event, msg.retry.data);
         }
+
+        urlParams.set('access_token', access_token);
+        window.location.replace(window.location + "?" + urlParams.toString());
     });
     
     

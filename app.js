@@ -149,6 +149,9 @@ app.get('/refresh_token', function(req, res) {
       res.send({
         'access_token': access_token
       });
+    } else {
+      //{ error: 'invalid_grant', error_description: 'Invalid refresh token' }
+      res.send(body);      
     }
   });
 });
@@ -164,8 +167,7 @@ http.listen(port, () => {
 
 
 //Expired tokens:
-//Your access token is: BQCglLT7NeMF_gY-Pex7KlDu3OqoTw4xAqLCTBf7yuueh6msbR5gN9VMG6MXYEczHjkUaI7OdkJ0XGlLkYh8Wm68s_5exUFqpbiFFUOZvWfcc5UrAmwtj4upvq4Ci0l5tSHYeBdLY64USt0ffFpmvogLM9_VIGwC5suOQCEq
-//Your refresh token is: AQAphtf_IyDhpejQT150a1IjCQVhRbx0sTpgiDYYRYUpeCai_N6W9EatwoXv5srxMmPSx6XDx99-v2rC0ja4Yg_qD3M2PfiGKSKnYpYcRVaIC-jZ-rsG-AYy1Uz40gI2gIs
+//Your access_token=BQCglLT7NeMF_gY-Pex7KlDu3OqoTw4xAqLCTBf7yuueh6msbR5gN9VMG6MXYEczHjkUaI7OdkJ0XGlLkYh8Wm68s_5exUFqpbiFFUOZvWfcc5UrAmwtj4upvq4Ci0l5tSHYeBdLY64USt0ffFpmvogLM9_VIGwC5suOQCEq&refresh_token=AQAphtf_IyDhpejQT150a1IjCQVhRbx0sTpgiDYYRYUpeCai_N6W9EatwoXv5srxMmPSx6XDx99-v2rC0ja4Yg_qD3M2PfiGKSKnYpYcRVaIC-jZ-rsG-AYy1Uz40gI2gIs
 
 
 
