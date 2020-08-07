@@ -178,15 +178,28 @@ io.on('connection', (socket)=> {
 		if (rooms[msg.roomId].leader == undefined) {rooms[msg.roomId].leader = socket.id}
 		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
 
-		console.log('User ' + socket.id + ' connected to room ' + msg.roomId + ' and has access token ' + msg.accessTokens);
+		console.log('User ' + socket.id + ' connected to room ' + msg.roomId + 'and has access token \n' + msg.access_token);
 	})
 	
 	socket.on('play', (msg) => {
 		console.log("play", msg);
 		spotify.play(msg.access_token);
-		//io.to(roomId).emit('restart', { "roomId" : roomId });
 	});
 
+	socket.on('pause', (msg) => {
+		console.log("play", msg);
+		spotify.pause(msg.access_token);
+	});
+
+	socket.on('getStatus', (msg) => {
+		console.log("getStatus", msg);
+		spotify.getStatus(msg.access_token);
+	});
+
+	socket.on('queueSong', (msg) => {
+		console.log("queueSong", msg);
+		spotify.queueSong(msg.access_token, msg.song_uri);
+	});
 
 
 	socket.on('beforeDisconnect', (msg) => {

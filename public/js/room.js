@@ -1,6 +1,5 @@
 $( document ).ready(function() {
 
-console.log( "ready!" );
 let socket = io();
 
 let urlParams = new URLSearchParams(window.location.search);
@@ -32,9 +31,6 @@ socket.on('requestRoom', () => {
     });
 });
 
-
-
-
 $('#play').click(function(){
     socket.emit('play', {
         roomId: roomId,
@@ -43,50 +39,25 @@ $('#play').click(function(){
 });
 
 $('#pause').click(function(){
-    console.log("pause");
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me/player/pause',  
-        type: 'PUT',
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    });
+    socket.emit('pause', {
+        roomId: roomId,
+        access_token: access_token 
+    })
 });
 
 $('#getStatus').click(function() {
-    console.log("getStatus");
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me/player',  
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    }).done(function(data) {
-        console.log(data);
-    });
+    socket.emit('getStatus', {
+        roomId: roomId,
+        access_token: access_token
+    })
 });
 
 $('#addToQueue').click(function() {
-    console.log("getStatus");
-    $.ajax({
-        //this uri here is a random song, make sure things match up when doing this
-        url: 'https://api.spotify.com/v1/me/player/queue?uri=spotify:track:6L3VWDPDTQkQFkqvmpAUMU',  
-        type: 'POST',                
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    }).done(function(data) {
-        console.log(data);
-    });
+    socket.emit('queueSong', {
+        roomId: roomId,
+        access_token: access_token,
+        song_uri: 'spotify:track:6L3VWDPDTQkQFkqvmpAUMU'
+    })
 });
 
 
