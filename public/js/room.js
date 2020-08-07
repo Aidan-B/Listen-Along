@@ -2,16 +2,94 @@ $( document ).ready(function() {
 
 console.log( "ready!" );
 let socket = io();
-let roomId;
 
-// socket.on('ping', (msg) => {
-//     console.log('ping', msg);
-// });
+let urlParams = new URLSearchParams(window.location.search);
+let roomId = urlParams.get('id');
+let access_token = urlParams.get('access_token');
+let refresh_token = urlParams.get('refresh_token');
+
+$('#roomId').text(roomId);
+$('#accessToken').text(access_token);
+$('#refreshToken').text(refresh_token);
+
+
+$(window).unload(function(){
+    socket.emit('beforeDisconnect', {
+        roomId: roomId
+    });
+});
+
 socket.on('roomId', (msg) => {
     console.log('roomId', msg);
     roomId = msg.roomId;
     $('#roomId').text(roomId);
 });
+
+socket.on('requestRoom', () => {
+    socket.emit('accessToken', {
+        roomId: roomId,
+        access_token: access_token
+    });
+});
+
+
+
+
+$('#play').click(function(){
+    socket.emit('play', {
+        roomId: roomId,
+        access_token: access_token 
+    })
+});
+
+$('#pause').click(function(){
+    console.log("pause");
+    $.ajax({
+        url: 'https://api.spotify.com/v1/me/player/pause',  
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + access_token
+        },
+        error: function (data, textStatus, xhr) {  
+            console.log(data);  
+        } 
+    });
+});
+
+$('#getStatus').click(function() {
+    console.log("getStatus");
+    $.ajax({
+        url: 'https://api.spotify.com/v1/me/player',  
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + access_token
+        },
+        error: function (data, textStatus, xhr) {  
+            console.log(data);  
+        } 
+    }).done(function(data) {
+        console.log(data);
+    });
+});
+
+$('#addToQueue').click(function() {
+    console.log("getStatus");
+    $.ajax({
+        //this uri here is a random song, make sure things match up when doing this
+        url: 'https://api.spotify.com/v1/me/player/queue?uri=spotify:track:6L3VWDPDTQkQFkqvmpAUMU',  
+        type: 'POST',                
+        headers: {
+            'Authorization': 'Bearer ' + access_token
+        },
+        error: function (data, textStatus, xhr) {  
+            console.log(data);  
+        } 
+    }).done(function(data) {
+        console.log(data);
+    });
+});
+
+
 
 
 
@@ -46,67 +124,14 @@ $('#search').on( "submit", function( event ) {
         } 
     });
 });
-/*
-document.getElementById('play').addEventListener('click', function() {
-    console.log("play");
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me/player/play',  
-        type: 'PUT',
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    });
-}, false);
 
-document.getElementById('pause').addEventListener('click', function() {
-    console.log("pause");
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me/player/pause',  
-        type: 'PUT',
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    });
-}, false);
 
-document.getElementById('getStatus').addEventListener('click', function() {
-    console.log("getStatus");
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me/player',  
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    }).done(function(data) {
-        console.log(data);
-    });
-}, false);
 
-document.getElementById('addToQueue').addEventListener('click', function() {
-    console.log("getStatus");
-    $.ajax({
-        //this uri here is a random song, make sure things match up when doing this
-        url: 'https://api.spotify.com/v1/me/player/queue?uri=spotify:track:6L3VWDPDTQkQFkqvmpAUMU',  
-        type: 'POST',                
-        headers: {
-            'Authorization': 'Bearer ' + access_token
-        },
-        error: function (data, textStatus, xhr) {  
-            console.log(data);  
-        } 
-    }).done(function(data) {
-        console.log(data);
-    });
-}, false);
-*/
+
+
+
+
+
+
 
 });

@@ -1,12 +1,3 @@
-/**
- * This is an example of a basic node.js script that performs
- * the Authorization Code oAuth2 flow to authenticate against
- * the Spotify Accounts.
- *
- * For more information, read
- * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
- */
-
 var express = require('express'); // Express web server framework
 var app = express();
 var http = require('http').createServer(app);
@@ -17,10 +8,12 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
+var spotify = require('./spotifyApi');
+
 let clientInfo = require("./clientInfo.json");
 
-let access_token;
-let refresh_token;
+// let access_token;
+// let refresh_token;
 
 
 let client_id = clientInfo.client_id; // Your client id
@@ -110,8 +103,8 @@ app.get('/callback', function(req, res) {
     request.post(authOptions, function(error, response, body) {
 		if (!error && response.statusCode === 200) {
 
-			access_token = body.access_token;
-			refresh_token = body.refresh_token;
+			let access_token = body.access_token;
+			let refresh_token = body.refresh_token;
 
 			var options = {
 				url: 'https://api.spotify.com/v1/me',
@@ -125,7 +118,7 @@ app.get('/callback', function(req, res) {
 			});
 			
 			// we can also pass the token to the browser to make requests from there
-			res.redirect('/#' +
+			res.redirect('/?' +
 				querystring.stringify({
 					access_token: access_token,
 					refresh_token: refresh_token
@@ -169,30 +162,40 @@ app.get('/room', function(req, res) {
   roomId = req.query.id;
 });
 
-
 http.listen(port, () => {
     console.log('listening on *:' + port);
 });
 
 io.on('connection', (socket)=> {
 
-	socket.join(roomId);
-	socket.emit('roomId', { "roomId": roomId } ); //Connect user to room
-	let room = io.sockets.adapter.rooms;
-	console.log(room);
-	if (room[roomId].leader == undefined) {room[roomId].leader = socket.id}
-	console.log('user with access token ' + access_token + ' and id ' + socket.id + ' connected to ' + roomId);
+	let rooms = io.sockets.adapter.rooms;
+	socket.emit('requestRoom', true ); //Connect user to room
+	
+	socket.on('accessToken', (msg)=>{
 
-	io.to(roomId).emit('roomId', { "roomId" : roomId });
+		socket.join(msg.roomId);
+		rooms[msg.roomId].accessTokens = {};	
+		if (rooms[msg.roomId].leader == undefined) {rooms[msg.roomId].leader = socket.id}
+		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
 
-	// socket.on('message', (msg) => {
-	// 	// console.log("restart", msg);
-	// 	//io.to(roomId).emit('restart', { "roomId" : roomId });
-	// });
+		console.log('User ' + socket.id + ' connected to room ' + msg.roomId + ' and has access token ' + msg.accessTokens);
+	})
+	
+	socket.on('play', (msg) => {
+		console.log("play", msg);
+		spotify.play(msg.access_token);
+		//io.to(roomId).emit('restart', { "roomId" : roomId });
+	});
 
+
+
+	socket.on('beforeDisconnect', (msg) => {
+		console.log("about to disconnect")
+	});
 	socket.on('disconnect', () => {
-		console.log('user '+socket.id+' disconnected');
-		if (room[roomId] != undefined) {console.log(room[roomId].length); }
+		console.log('user disconnected', socket.id);
+
+		//TODO: remove from room, and disable leader if appropriate
 	});
 
 });

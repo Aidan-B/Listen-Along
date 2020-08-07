@@ -28,11 +28,17 @@ function getHashParams() {
 
 
 // Validate auth
-var params = getHashParams();
+let urlParams = new URLSearchParams(window.location.search);
+let access_token = urlParams.get('access_token');
+let refresh_token = urlParams.get('refresh_token');
+let error = urlParams.get('error');
 
-var access_token = params.access_token,
-    refresh_token = params.refresh_token,
-    error = params.error;
+
+// var params = getHashParams();
+
+// var access_token = params.access_token,
+//     refresh_token = params.refresh_token,
+//     error = params.error;
 
 if (error) {
     alert('There was an error during the authentication');
@@ -47,6 +53,10 @@ if (error) {
                 $('#loggedin').show();
             }
         });
+
+        $('#access_token').val(access_token);
+        $('#refresh_token').val(refresh_token);
+
     } else {
         // jump to sign in page
         window.location.href = '/login';
