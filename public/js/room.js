@@ -20,6 +20,7 @@ socket.on('refreshToken', (msg) => {
             'refresh_token': refresh_token
         }
     }).done(function(data) {
+        console.log(data)
         access_token = data.access_token;
         socket.emit('accessToken', {
             roomId: roomId,
@@ -33,11 +34,12 @@ socket.on('refreshToken', (msg) => {
         }
 
         urlParams.set('access_token', access_token);
-        window.location.replace(window.location + "?" + urlParams.toString());
+        
+        //window.location.replace(window.location + "?" + urlParams.toString());
     });
     
     
-}); 
+});
 
 
 socket.on('setup', () => {
@@ -93,7 +95,15 @@ $('#seekTrack').click(function() {
     })
 });
 
-
+$('.song-link').on('click', function(event) {
+    console.log('test');
+    let uri = $(this).data('uri');
+    socket.emit('queueSong', {
+        roomId: roomId,
+        access_token: access_token,
+        song_uri: uri
+    })
+});
 
 
 //Spotify API calls
@@ -120,25 +130,29 @@ $('#search').on("submit", function( event ) {
             //TODO: turn this into an item that can be added to queue
             data.tracks.items.forEach(element => {
                 let artists = element.artists.map(e => e.name).join(", ");
-                searchResults.append(JSON.stringify({
-                    track_url: element.external_urls.spotify,
-                    album_art: element.album.images[1].url,
-                    track_name: element.name,
-                    artist_name: artists,
-                    spotify_uri: element.uri
-                }));
-            });
+                searchResults.append(
                 
+                '<div class="col mb-4"><div class="card hoverable" ><a href="#" class="song-link" data-uri="' + 
+                element.uri + '" data><img src="' + 
+                element.album.images[2].url + '"></img>'+
+                element.name + " - " +
+                artists+'</a></div></div>'
+                
+                );
+            });
+            $('a.song-link').on('click', function(event) {
+                let uri = $(this).data('uri');
+                socket.emit('queueSong', {
+                    roomId: roomId,
+                    access_token: access_token,
+                    song_uri: uri
+                });
+                searchResults.html('');
+            });
+            
         } 
     });
 });
-
-
-
-
-
-
-
 
 
 

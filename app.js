@@ -151,7 +151,7 @@ app.get('/refresh_token', function(req, res) {
       });
     } else {
       //{ error: 'invalid_grant', error_description: 'Invalid refresh token' }
-      res.send(body);      
+      res.send({error, response, body});      
     }
   });
 });
