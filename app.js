@@ -12,15 +12,11 @@ var spotify = require('./spotifyApi');
 
 let clientInfo = require("./clientInfo.json");
 
-// let access_token;
-// let refresh_token;
-
 
 let client_id = clientInfo.client_id; // Your client id
 let client_secret = clientInfo.client_secret; // Your secret
 let redirect_uri = clientInfo.redirect_uri; // Your redirect uri
 
-let roomId;
 let port = process.env.PORT;
 if (port == null || port == "") {
   port = 8888;
@@ -166,45 +162,155 @@ http.listen(port, () => {
     console.log('listening on *:' + port);
 });
 
+
+//Expired tokens:
+//Your access token is: BQCglLT7NeMF_gY-Pex7KlDu3OqoTw4xAqLCTBf7yuueh6msbR5gN9VMG6MXYEczHjkUaI7OdkJ0XGlLkYh8Wm68s_5exUFqpbiFFUOZvWfcc5UrAmwtj4upvq4Ci0l5tSHYeBdLY64USt0ffFpmvogLM9_VIGwC5suOQCEq
+//Your refresh token is: AQAphtf_IyDhpejQT150a1IjCQVhRbx0sTpgiDYYRYUpeCai_N6W9EatwoXv5srxMmPSx6XDx99-v2rC0ja4Yg_qD3M2PfiGKSKnYpYcRVaIC-jZ-rsG-AYy1Uz40gI2gIs
+
+
+
+
 io.on('connection', (socket)=> {
 
-	let rooms = io.sockets.adapter.rooms;
-	socket.emit('requestRoom', true ); //Connect user to room
+  
+  let rooms = io.sockets.adapter.rooms;
+	socket.emit('setup'); //Connect user to room
 	
 	socket.on('accessToken', (msg)=>{
 
 		socket.join(msg.roomId);
 		if (rooms[msg.roomId].accessTokens == undefined) {rooms[msg.roomId].accessTokens = {}}
+		if (rooms[msg.roomId].refreshTokens == undefined) {rooms[msg.roomId].refreshTokens = {}}
 		if (rooms[msg.roomId].leader == undefined) {rooms[msg.roomId].leader = socket.id}
 		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
+		rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token
 
 		console.log('User ' + socket.id + ' connected to room ' + msg.roomId + ' and has access token \n' + msg.access_token);
 	})
 	
 	socket.on('play', (msg) => {
-		console.log("play", msg);
-		for (var id in rooms[msg.roomId].sockets) {
-			spotify.play(rooms[msg.roomId].accessTokens[id]);
-		}
+    console.log("play", msg);
+    if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.play(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          
+          if (error.status === 401 && error.message === "The access token expired") {
+            io.to(id).emit('refreshToken', { 
+              retry: {
+                event: "play",
+                data: msg
+              }
+            });
+          }
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.play(rooms[msg.roomId].accessTokens[socket.id])
+      .catch((error) => {
+        console.error(error);
+      })
+    }
+		
 	});
 
 	socket.on('pause', (msg) => {
 		console.log("pause", msg);
-		for (var id in rooms[msg.roomId].sockets) {
-			spotify.pause(rooms[msg.roomId].accessTokens[id]);
-		}
+		if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.pause(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          
+          if (error.status  === 401 && error.message == "The access token expired") {
+            io.to(id).emit('refreshToken', { 
+              retry: {
+                event: "pause",
+                data: msg
+              }
+            });
+          }
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.pause(rooms[msg.roomId].accessTokens[socket.id])
+      .catch((error) => {
+        console.error(error);
+      })
+    }
 	});
 
 	socket.on('getStatus', (msg) => {
 		console.log("getStatus", msg);
-		spotify.getStatus(msg.access_token);
+    spotify.getStatus(msg.access_token)
+      .then((data) => {
+        console.log(data)
+      }).catch((error) => {
+        console.error(error);
+      });
 	});
 
 	socket.on('queueSong', (msg) => {
-		console.log("queueSong", msg);
-		spotify.queueSong(msg.access_token, msg.song_uri);
-	});
-
+    console.log("queueSong", msg);
+    if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
+        .catch((error) => {
+          
+          if (error.status  === 401 && error.message == "The access token expired") {
+            io.to(id).emit('refreshToken', { 
+              retry: {
+                event: "queueSong",
+                data: msg
+              }
+            });
+          }
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.queueSong(rooms[msg.roomId].accessTokens[socket.id], msg.song_uri)
+      .catch((error) => {
+        console.error(error);
+      })
+    }
+  });
+  
+  //TODO: sync song progress across clients
+  socket.on('seekTrack', (msg) => {
+    console.log("seekTrack", msg);
+    if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.seek(rooms[msg.roomId].accessTokens[id], msg.position_ms)
+        .catch((error) => {
+          
+          if (error.status  === 401 && error.message == "The access token expired") {
+            io.to(id).emit('refreshToken', { 
+              retry: {
+                event: "seekTrack",
+                data: msg
+              }
+            });
+          }
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.seek(rooms[msg.roomId].accessTokens[socket.id], msg.position_ms)
+      .catch((error) => {
+        console.error(error);
+      })
+    }
+  });
 
 	socket.on('beforeDisconnect', (msg) => {
 		console.log("about to disconnect")
