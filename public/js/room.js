@@ -12,15 +12,13 @@ $('#accessToken').text(access_token);
 $('#refreshToken').text(refresh_token);
 
 
-socket.on('refreshToken', (msg) => {
-    console.log("refreshing!")
+socket.on('refreshToken', (msg) => {    
     $.ajax({
         url: '/refresh_token',
         data: {
             'refresh_token': refresh_token
         }
     }).done(function(data) {
-        console.log(data)
         access_token = data.access_token;
         socket.emit('accessToken', {
             roomId: roomId,
@@ -34,8 +32,7 @@ socket.on('refreshToken', (msg) => {
         }
 
         urlParams.set('access_token', access_token);
-        
-        //window.location.replace(window.location + "?" + urlParams.toString());
+        window.location.replace(window.location + "?" + urlParams.toString());
     });
     
     
@@ -95,22 +92,10 @@ $('#seekTrack').click(function() {
     })
 });
 
-$('.song-link').on('click', function(event) {
-    console.log('test');
-    let uri = $(this).data('uri');
-    socket.emit('queueSong', {
-        roomId: roomId,
-        access_token: access_token,
-        song_uri: uri
-    })
-});
-
-
 //Spotify API calls
 $('#search').on("submit", function( event ) {
     //search requires q, type, limit, offset
     event.preventDefault();
-    console.log('https://api.spotify.com/v1/search?' + $( this ).serialize());
     $.ajax({
         url: 'https://api.spotify.com/v1/search?' + $( this ).serialize(),
         type: 'GET',
@@ -123,7 +108,6 @@ $('#search').on("submit", function( event ) {
         success:  function (data, textStatus, xhr) {
             //TODO: this needs to change per query type. Only works for track seach right now
             
-            console.log(data.tracks.items);
             let searchResults = $('#searchResults');
             searchResults.html('');
             

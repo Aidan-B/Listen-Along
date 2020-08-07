@@ -104,18 +104,17 @@ app.get('/callback', function(req, res) {
 			let access_token = body.access_token;
 			let refresh_token = body.refresh_token;
 
-			var options = {
-				url: 'https://api.spotify.com/v1/me',
-				headers: { 'Authorization': 'Bearer ' + access_token },
-				json: true
-			};
+			// var options = {
+			// 	url: 'https://api.spotify.com/v1/me',
+			// 	headers: { 'Authorization': 'Bearer ' + access_token },
+			// 	json: true
+			// };
 
-			// use the access token to access the Spotify Web API
-			request.get(options, function(error, response, body) {
-				console.log(body);
-			});
+			// // use the access token to access the Spotify Web API
+			// request.get(options, function(error, response, body) {
+			// 	console.log(body);
+			// });
 			
-			// we can also pass the token to the browser to make requests from there
 			res.redirect('/?' +
 				querystring.stringify({
 					access_token: access_token,
@@ -189,11 +188,11 @@ io.on('connection', (socket)=> {
 		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
 		rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token
 
-		console.log('User ' + socket.id + ' connected to room ' + msg.roomId + ' and has access token \n' + msg.access_token);
+		console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
 	})
 	
 	socket.on('play', (msg) => {
-    console.log("play", msg);
+    //console.log("play", msg);
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -222,7 +221,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('pause', (msg) => {
-		console.log("pause", msg);
+		//console.log("pause", msg);
 		if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -250,7 +249,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('getStatus', (msg) => {
-		console.log("getStatus", msg);
+		//console.log("getStatus", msg);
     spotify.getStatus(msg.access_token)
       .then((data) => {
         console.log(data)
@@ -260,7 +259,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('queueSong', (msg) => {
-    console.log("queueSong", msg);
+    //console.log("queueSong", msg);
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -289,7 +288,7 @@ io.on('connection', (socket)=> {
   
   //TODO: sync song progress across clients
   socket.on('seekTrack', (msg) => {
-    console.log("seekTrack", msg);
+    //console.log("seekTrack", msg);
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -317,10 +316,10 @@ io.on('connection', (socket)=> {
   });
 
 	socket.on('beforeDisconnect', (msg) => {
-		console.log("about to disconnect")
+		//console.log("about to disconnect")
 	});
 	socket.on('disconnect', () => {
-		console.log('user disconnected', socket.id);
+		console.log('user ' + socket.id + ' disconnected');
 
 		//TODO: remove from room, and disable leader if appropriate
 	});
