@@ -11,6 +11,9 @@ module.exports.play = function (access_token) {
     }
     const req = https.request(options, (res) => {
         console.log("play:", res.statusCode);
+        res.on('data', d => {
+            process.stdout.write(d)
+        })
     });
 
     req.on('error', (error) => {
@@ -31,6 +34,9 @@ module.exports.pause = function (access_token) {
     }
     const req = https.request(options, (res) => {
         console.log("pause:", res.statusCode);
+        res.on('data', d => {
+            process.stdout.write(d)
+        })
     });
 
     req.on('error', (error) => {
