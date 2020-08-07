@@ -147,7 +147,7 @@ $('#search').on("submit", function( event ) {
                     access_token: access_token,
                     song_uri: uri
                 });
-                searchResults.html('');
+                searchResults.html('Song added');
             });
             
         } 
