@@ -10,14 +10,16 @@ var cookieParser = require('cookie-parser');
 
 var spotify = require('./spotifyApi');
 
-let clientInfo = require("./clientInfo.json");
-
+let clientInfo = process.env
+if (clientInfo.client_id == null || clientInfo.client_id == "") {
+  clientInfo = require("./clientInfo.json");
+}
 
 let client_id = clientInfo.client_id; // Your client id
 let client_secret = clientInfo.client_secret; // Your secret
 let redirect_uri = clientInfo.redirect_uri; // Your redirect uri
 
-let port = process.env.PORT;
+let port = clientInfo.PORT;
 if (port == null || port == "") {
   port = 8888;
 }
