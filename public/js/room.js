@@ -115,13 +115,7 @@ $('#search').on("submit", function( event ) {
             data.tracks.items.forEach(element => {
                 let artists = element.artists.map(e => e.name).join(", ");
                 searchResults.append(
-                
-                '<div class="col mb-4"><div class="card hoverable" ><a href="#" class="song-link" data-uri="' + 
-                element.uri + '" data><img src="' + 
-                element.album.images[2].url + '"></img>'+
-                element.name + " - " +
-                artists+'</a></div></div>'
-                
+                    cardTemplate(element.uri, element.album.images[2].url, element.name, artists)                
                 );
             });
             $('a.song-link').on('click', function(event) {
@@ -141,3 +135,14 @@ $('#search').on("submit", function( event ) {
 
 
 });
+
+function cardTemplate(uri, album, name, artists) {
+return `<div class="col mb-4">
+    <div class="card hoverable" >
+        <a href="#" class="song-link" data-uri="${uri}">
+            <img src="${album}"></img>
+            <span>${name} - ${artists}</span>
+        </a>
+    </div>
+</div>`;
+}

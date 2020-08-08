@@ -167,3 +167,69 @@ module.exports.seek = function (access_token, position_ms) {
         req.end();
     })
 }
+
+module.exports.next = function (access_token) {
+    return new Promise((resolve, reject) => {
+        let data = "";
+        let options = {
+            hostname: 'api.spotify.com',
+            path: '/v1/me/player/next' ,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        }
+        const req = https.request(options, (res) => {
+            res.on('data', d => {
+                data += d;
+            })
+            
+            res.on('end', async ()=> {
+                if (res.statusCode === 204 ) {
+                    resolve(true);
+                } else {
+                    reject(JSON.parse(data).error);
+                }
+                
+            });
+            
+        });
+        req.on('error', (error) => {
+            reject(new Error(error));
+        })
+        req.end();
+    });
+}
+
+module.exports.previous = function (access_token) {
+    return new Promise((resolve, reject) => {
+        let data = "";
+        let options = {
+            hostname: 'api.spotify.com',
+            path: '/v1/me/player/previous' ,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        }
+        const req = https.request(options, (res) => {
+            res.on('data', d => {
+                data += d;
+            })
+            
+            res.on('end', async ()=> {
+                if (res.statusCode === 204 ) {
+                    resolve(true);
+                } else {
+                    reject(JSON.parse(data).error);
+                }
+                
+            });
+            
+        });
+        req.on('error', (error) => {
+            reject(new Error(error));
+        })
+        req.end();
+    });
+}
