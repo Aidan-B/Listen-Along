@@ -183,6 +183,16 @@ http.listen(port, () => {
 
 io.on('connection', (socket)=> {
 
+  function onRequestError(error, action, id) {
+    if (error.status === 401 && error.message === "The access token expired") {
+      io.to(id).emit('refreshToken', { 
+        retry: {
+          event: action,
+          data: msg
+        }
+      });
+    }
+  }
     
   let rooms = io.sockets.adapter.rooms;
 	socket.emit('setup'); //Connect user to room
@@ -207,14 +217,7 @@ io.on('connection', (socket)=> {
         spotify.play(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          if (error.status === 401 && error.message === "The access token expired") {
-            io.to(id).emit('refreshToken', { 
-              retry: {
-                event: action,
-                data: msg
-              }
-            });
-          }
+          onRequestError(error, "play");
           console.error(error);
         });
       }
@@ -236,14 +239,7 @@ io.on('connection', (socket)=> {
         spotify.pause(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          if (error.status  === 401 && error.message == "The access token expired") {
-            io.to(id).emit('refreshToken', { 
-              retry: {
-                event: "pause",
-                data: msg
-              }
-            });
-          }
+          onRequestError(error, "pause");
           console.error(error);
         });
       }
@@ -274,14 +270,7 @@ io.on('connection', (socket)=> {
         spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
         .catch((error) => {
           
-          if (error.status  === 401 && error.message == "The access token expired") {
-            io.to(id).emit('refreshToken', { 
-              retry: {
-                event: "queueSong",
-                data: msg
-              }
-            });
-          }
+          onRequestError(error, "queueSong");
           console.error(error);
         });
       }
@@ -303,14 +292,7 @@ io.on('connection', (socket)=> {
         spotify.seek(rooms[msg.roomId].accessTokens[id], msg.position_ms)
         .catch((error) => {
           
-          if (error.status  === 401 && error.message == "The access token expired") {
-            io.to(id).emit('refreshToken', { 
-              retry: {
-                event: "seekTrack",
-                data: msg
-              }
-            });
-          }
+          onRequestError(error, "seekTrack");
           console.error(error);
         });
       }
