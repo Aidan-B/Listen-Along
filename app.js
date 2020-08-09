@@ -104,22 +104,24 @@ app.get('/callback', function(req, res) {
 			let access_token = body.access_token;
 			let refresh_token = body.refresh_token;
 
-			// var options = {
-			// 	url: 'https://api.spotify.com/v1/me',
-			// 	headers: { 'Authorization': 'Bearer ' + access_token },
-			// 	json: true
-			// };
+			var options = {
+				url: 'https://api.spotify.com/v1/me',
+				headers: { 'Authorization': 'Bearer ' + access_token },
+				json: true
+			};
 
-			// // use the access token to access the Spotify Web API
-			// request.get(options, function(error, response, body) {
-			// 	console.log(body);
-			// });
-			
-			res.redirect('/?' +
+			// use the access token to access the Spotify Web API
+			request.get(options, function(error, response, body) {
+        res.cookie("has_premium", (body.product === "premium"));
+        
+        res.redirect('/?' +
 				querystring.stringify({
 					access_token: access_token,
 					refresh_token: refresh_token
 			}));
+			});
+			
+			
 		} else {
 			res.redirect('/' +
 			querystring.stringify({
@@ -158,8 +160,14 @@ app.get('/refresh_token', function(req, res) {
 });
 
 app.get('/room', function(req, res) {
-  res.sendFile(__dirname + '/public/room.html')
-  roomId = req.query.id;
+  var has_premium = req.cookies ? req.cookies["has_premium"] : null;
+  if (has_premium === "true") {
+    res.sendFile(__dirname + '/public/room.html')
+    roomId = req.query.id;
+  } else {    
+    res.redirect('/');
+  }
+  
 });
 
 http.listen(port, () => {
@@ -175,7 +183,7 @@ http.listen(port, () => {
 
 io.on('connection', (socket)=> {
 
-  
+    
   let rooms = io.sockets.adapter.rooms;
 	socket.emit('setup'); //Connect user to room
 	
@@ -202,7 +210,7 @@ io.on('connection', (socket)=> {
           if (error.status === 401 && error.message === "The access token expired") {
             io.to(id).emit('refreshToken', { 
               retry: {
-                event: "play",
+                event: action,
                 data: msg
               }
             });

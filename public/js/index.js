@@ -15,9 +15,16 @@ if (error) {
             },
             success: function(response) {
                 $('#loggedin').show();
+                console.log(response);
+                if (response.product == "premium"){
+                    $('#submit').prop("disabled", false);
+                } else {
+                    $('#loggedin').append(" You need to have a premium account to use this app.")
+                }
+                    
             }
         });
-
+        
         $('#access_token').val(access_token);
         $('#refresh_token').val(refresh_token);
 

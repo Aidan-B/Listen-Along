@@ -11,6 +11,9 @@ $('#roomId').text(roomId);
 $('#accessToken').text(access_token);
 $('#refreshToken').text(refresh_token);
 
+if (access_token === null || refresh_token === null) {
+    $(location).attr('href', '/')
+}
 
 socket.on('refreshToken', (msg) => {    
     $.ajax({
