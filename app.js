@@ -183,7 +183,7 @@ http.listen(port, () => {
 
 io.on('connection', (socket)=> {
 
-  function onRequestError(error, action, id) {
+  function onRequestError(error, action, id, msg) {
     if (error.status === 401 && error.message === "The access token expired") {
       io.to(id).emit('refreshToken', { 
         retry: {
@@ -217,7 +217,7 @@ io.on('connection', (socket)=> {
         spotify.previous(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          onRequestError(error, "previous");
+          onRequestError(error, "previous", id, msg);
           console.error(error);
         });
       }
@@ -239,7 +239,7 @@ io.on('connection', (socket)=> {
         spotify.play(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          onRequestError(error, "play");
+          onRequestError(error, "play", id, msg);
           console.error(error);
         });
       }
@@ -261,7 +261,7 @@ io.on('connection', (socket)=> {
         spotify.pause(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          onRequestError(error, "pause");
+          onRequestError(error, "pause", id, msg);
           console.error(error);
         });
       }
@@ -282,7 +282,7 @@ io.on('connection', (socket)=> {
         spotify.next(rooms[msg.roomId].accessTokens[id])
         .catch((error) => {
           
-          onRequestError(error, "next");
+          onRequestError(error, "next", id, msg);
           console.error(error);
         });
       }
@@ -314,7 +314,7 @@ io.on('connection', (socket)=> {
         spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
         .catch((error) => {
           
-          onRequestError(error, "queueSong");
+          onRequestError(error, "queueSong", id, msg);
           console.error(error);
         });
       }
@@ -336,7 +336,7 @@ io.on('connection', (socket)=> {
         spotify.seek(rooms[msg.roomId].accessTokens[id], msg.position_ms)
         .catch((error) => {
           
-          onRequestError(error, "seekTrack");
+          onRequestError(error, "seekTrack", id, msg);
           console.error(error);
         });
       }

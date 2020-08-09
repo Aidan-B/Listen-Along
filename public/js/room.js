@@ -15,13 +15,15 @@ if (access_token === null || refresh_token === null) {
     $(location).attr('href', '/')
 }
 
-socket.on('refreshToken', (msg) => {    
+socket.on('refreshToken', (msg) => {
+    console.log("refreshing old token")   
     $.ajax({
         url: '/refresh_token',
         data: {
             'refresh_token': refresh_token
         }
     }).done(function(data) {
+        console.log(data.access_token);
         access_token = data.access_token;
         socket.emit('accessToken', {
             roomId: roomId,
@@ -35,6 +37,7 @@ socket.on('refreshToken', (msg) => {
         }
 
         urlParams.set('access_token', access_token);
+        console.log(window.location + "?" + urlParams.toString());
         window.location.replace(window.location + "?" + urlParams.toString());
     });
     
@@ -93,21 +96,50 @@ $('#getStatus').click(function() {
     })
 });
 
-$('#addToQueue').click(function() {
-    socket.emit('queueSong', {
-        roomId: roomId,
-        access_token: access_token,
-        song_uri: 'spotify:track:2jz1bw1p0WQj0PDnVDP0uY'
+function getPlayerStatus() {
+    return $.ajax({
+        url: 'https://api.spotify.com/v1/me/player/',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + access_token
+        },
+        error: function (data, textStatus, xhr) {  
+            console.error(data);  
+        },
+        success: function (data, textStatus, xhr) {
+            return data;
+        }
     })
-});
+}
+function updateProgress() {
+    
+    val += 1;
+    $('#progressBar').val(val);
+};
+function resetProgress() {
+    getPlayerStatus().then((data) => {
+        console.log(data)
+        max = data.item.duration_ms;
+        val = data.progress_ms;
+        $('#progressBar').prop('max', max);
+        
+    });
+}
+let val = 0;
+let max = 10000;
+resetProgress();
+window.setInterval(updateProgress, 1)
+$('#progressBar').click(function(e) {
+    let progress = (e.pageX - $(this).position().left) / $(this).width();
+    val = Math.floor(progress * max)
 
-$('#seekTrack').click(function() {
     socket.emit('seekTrack', {
         roomId: roomId,
         access_token: access_token,
-        position_ms: '60000'
+        position_ms: val
     })
 });
+
 
 //Spotify API calls
 $('#search').on("submit", function( event ) {
