@@ -208,7 +208,29 @@ io.on('connection', (socket)=> {
 
 		console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
 	})
-	
+  
+  socket.on('previous', (msg) => {
+    //console.log("play", msg);
+    if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.previous(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          
+          onRequestError(error, "previous");
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.previous(rooms[msg.roomId].accessTokens[socket.id])
+      .catch((error) => {
+        console.error(error);
+      })
+    }
+		
+	});
+
 	socket.on('play', (msg) => {
     //console.log("play", msg);
     if (msg.retry !== true){
@@ -250,6 +272,28 @@ io.on('connection', (socket)=> {
         console.error(error);
       })
     }
+	});
+
+  socket.on('next', (msg) => {
+    //console.log("play", msg);
+    if (msg.retry !== true){
+      for (var id in rooms[msg.roomId].sockets) {
+      
+        spotify.next(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          
+          onRequestError(error, "next");
+          console.error(error);
+        });
+      }
+    } else {
+      //only retry for failed user
+      spotify.ntext(rooms[msg.roomId].accessTokens[socket.id])
+      .catch((error) => {
+        console.error(error);
+      })
+    }
+		
 	});
 
 	socket.on('getStatus', (msg) => {

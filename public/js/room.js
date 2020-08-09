@@ -58,6 +58,13 @@ $(window).bind('beforeunload', function(){
 
 
 
+$('#previous').click(function(){
+    socket.emit('previous', {
+        roomId: roomId,
+        access_token: access_token 
+    })
+});
+
 $('#play').click(function(){
     socket.emit('play', {
         roomId: roomId,
@@ -67,6 +74,13 @@ $('#play').click(function(){
 
 $('#pause').click(function(){
     socket.emit('pause', {
+        roomId: roomId,
+        access_token: access_token 
+    })
+});
+
+$('#next').click(function(){
+    socket.emit('next', {
         roomId: roomId,
         access_token: access_token 
     })
