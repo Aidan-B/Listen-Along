@@ -224,15 +224,13 @@ io.on('connection', (socket)=> {
     //console.log("play", msg);
     if (socket.id !== rooms[msg.roomId].leader) {return}
     if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.previous(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          
-          onRequestError(error, "previous", id, msg);
-          console.error(error);
-        });
-      }
+      let id = rooms[msg.roomId].leader;
+      spotify.previous(rooms[msg.roomId].accessTokens[id])
+      .catch((error) => {
+        
+        onRequestError(error, "previous", id, msg);
+        console.error(error);
+      });
     } else {
       //only retry for failed user
       spotify.previous(rooms[msg.roomId].accessTokens[socket.id])
@@ -292,18 +290,17 @@ io.on('connection', (socket)=> {
     //console.log("play", msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.next(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          
-          onRequestError(error, "next", id, msg);
-          console.error(error);
-        });
-      }
+    let id = rooms[msg.roomId].leader;
+    
+      spotify.next(rooms[msg.roomId].accessTokens[id])
+      .catch((error) => {
+        
+        onRequestError(error, "next", id, msg);
+        console.error(error);
+      });
     } else {
       //only retry for failed user
-      spotify.ntext(rooms[msg.roomId].accessTokens[socket.id])
+      spotify.next(rooms[msg.roomId].accessTokens[socket.id])
       .catch((error) => {
         console.error(error);
       })
