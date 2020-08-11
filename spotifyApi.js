@@ -237,8 +237,9 @@ module.exports.previous = function (access_token) {
 module.exports.start = async function (access_token, uri) {
     return new Promise((resolve, reject) => {
         const write = JSON.stringify({
-            uris: uri
+            uris: [uri]
         });
+        console.log(write)
         let data = "";
         let options = {
             hostname: 'api.spotify.com',
