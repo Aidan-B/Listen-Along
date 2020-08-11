@@ -9,6 +9,7 @@ var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
 var spotify = require('./spotifyApi');
+const { settings } = require('cluster');
 
 let clientInfo = process.env
 if (clientInfo.client_id == null || clientInfo.client_id == "") {
@@ -118,7 +119,7 @@ app.get('/callback', function(req, res) {
 				querystring.stringify({
 					access_token: access_token,
 					refresh_token: refresh_token
-			}));
+			  }));
 			});
 			
 			
@@ -175,12 +176,6 @@ http.listen(port, () => {
 });
 
 
-//Expired tokens:
-//Your access_token=BQCglLT7NeMF_gY-Pex7KlDu3OqoTw4xAqLCTBf7yuueh6msbR5gN9VMG6MXYEczHjkUaI7OdkJ0XGlLkYh8Wm68s_5exUFqpbiFFUOZvWfcc5UrAmwtj4upvq4Ci0l5tSHYeBdLY64USt0ffFpmvogLM9_VIGwC5suOQCEq&refresh_token=AQAphtf_IyDhpejQT150a1IjCQVhRbx0sTpgiDYYRYUpeCai_N6W9EatwoXv5srxMmPSx6XDx99-v2rC0ja4Yg_qD3M2PfiGKSKnYpYcRVaIC-jZ-rsG-AYy1Uz40gI2gIs
-
-
-
-
 io.on('connection', (socket)=> {
 
   function onRequestError(error, action, id, msg) {
@@ -193,6 +188,16 @@ io.on('connection', (socket)=> {
       });
     }
   }
+
+  function assignNewLeader(oldId, roomId) {
+    let newLeader = ( Object.keys(rooms[roomId].sockets)[0] == oldId ) ? Object.keys(rooms[roomId].sockets)[1] : Object.keys(rooms[roomId].sockets)[0];
+    rooms[roomId].leader = newLeader;
+    console.log(newLeader)
+    io.to(oldId).emit('leader', false);
+    io.to(newLeader).emit('leader', true);
+  }
+
+
     
   let rooms = io.sockets.adapter.rooms;
 	socket.emit('setup'); //Connect user to room
@@ -202,15 +207,22 @@ io.on('connection', (socket)=> {
 		socket.join(msg.roomId);
 		if (rooms[msg.roomId].accessTokens == undefined) {rooms[msg.roomId].accessTokens = {}}
 		if (rooms[msg.roomId].refreshTokens == undefined) {rooms[msg.roomId].refreshTokens = {}}
-		if (rooms[msg.roomId].leader == undefined) {rooms[msg.roomId].leader = socket.id}
+		if (rooms[msg.roomId].leader == undefined) {
+      io.to(socket.id).emit('leader', true);
+      rooms[msg.roomId].leader = socket.id
+      rooms[msg.roomId].settings = { controlPlayback: false }
+    }
 		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
 		rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token
 
-		console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
-	})
+    console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
+  })
+  
+  
   
   socket.on('previous', (msg) => {
     //console.log("play", msg);
+    if (socket.id !== rooms[msg.roomId].leader) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -233,6 +245,7 @@ io.on('connection', (socket)=> {
 
 	socket.on('play', (msg) => {
     //console.log("play", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -254,7 +267,8 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('pause', (msg) => {
-		//console.log("pause", msg);
+    //console.log("pause", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
 		if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -276,6 +290,7 @@ io.on('connection', (socket)=> {
 
   socket.on('next', (msg) => {
     //console.log("play", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -297,7 +312,8 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('getStatus', (msg) => {
-		//console.log("getStatus", msg);
+    //console.log("getStatus", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     spotify.getStatus(msg.access_token)
       .then((data) => {
         console.log(data)
@@ -308,6 +324,7 @@ io.on('connection', (socket)=> {
 
 	socket.on('queueSong', (msg) => {
     //console.log("queueSong", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -330,6 +347,7 @@ io.on('connection', (socket)=> {
   //TODO: sync song progress across clients
   socket.on('seekTrack', (msg) => {
     //console.log("seekTrack", msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
       
@@ -349,7 +367,19 @@ io.on('connection', (socket)=> {
     }
   });
 
+  socket.on('settings', (msg) => {
+    //console.log("seekTrack", msg);
+    if (socket.id !== rooms[msg.roomId].leader) {return}
+    rooms[msg.roomId].settings = msg.settings;
+  
+    io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
+    
+  });
+
 	socket.on('beforeDisconnect', (msg) => {
+    if (rooms[msg.roomId].leader == socket.id) {
+      assignNewLeader(socket.id, msg.roomId);
+    }
 		//console.log("about to disconnect")
 	});
 	socket.on('disconnect', () => {

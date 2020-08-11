@@ -13,20 +13,35 @@
 
   <body>
     <div class="container">
+      <h2><a href="/">Home</a></h2>
         <p>welcome to the room: <code id="roomId"></code></p>
-        <p>Your access token is: <code id="accessToken"></code></p>
-        <p>Your refresh token is: <code id="refreshToken"></code></p>
+        <!-- <p>Your access token is: <code id="accessToken"></code></p>
+        <p>Your refresh token is: <code id="refreshToken"></code></p> -->
 
-        <button class="btn btn-primary" id="previous">Previous</button>
-        <button class="btn btn-primary" id="play">Play</button>
-        <button class="btn btn-primary" id="pause">Pause</button>
-        <button class="btn btn-primary" id="next">Next</button>
-        <button class="btn btn-primary" id="getStatus">Get Status</button>
-        
-        </br></br>
-  
-        <div>
-          <progress id="progressBar" value="0" max="1000" style="width: 100%;"></progress>
+        <div class="controls">
+          <div>
+            <button class="btn btn-primary" id="previous" disabled>Previous</button>
+            <button class="btn btn-primary" id="play" disabled>Play</button>
+            <button class="btn btn-primary" id="pause" disabled>Pause</button>
+            <button class="btn btn-primary" id="next" disabled>Next</button>
+            <!-- <button class="btn btn-primary" id="getStatus">Get Status</button> -->
+          </div>
+          <div>
+            <progress id="progressBar" value="0" max="1000" style="width: 100%;"></progress>
+          </div>
+          
+        </div>
+
+        <div class="leader-settings" style="visibility: hidden;">
+          <h3>You are the leader</h3>
+          <form id="leader-settings">
+            <div class="custom-control custom-checkbox mb-3">
+              <input type="checkbox" class="custom-control-input" id="controlPlayback" name="controlPlayback">
+              <label class="custom-control-label" for="controlPlayback">Allow everyone to control playback?</label>
+            </div>
+            <button id="save" class="btn btn-secondary">Save</button>
+          </form>
+          
         </div>
         
 
@@ -48,10 +63,10 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="limit">Example select</label>
+            <label for="limit">Number of results</label>
             <input type="number" class="form-control" id="limit" name="limit" value="5"/>
           </div>
-          <button class="btn btn-secondary">Search</button>
+          <button id="searchButton" class="btn btn-secondary" disabled>Search</button>
         </form>
         <div id="searchResults" class="row row-cols-1 row-cols-md-2">
 
