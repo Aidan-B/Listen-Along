@@ -326,15 +326,13 @@ io.on('connection', (socket)=> {
     //console.log("queueSong", msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
-        .catch((error) => {
-          
-          onRequestError(error, "queueSong", id, msg);
-          console.error(error);
-        });
-      }
+      let id = rooms[msg.roomId].leader;
+      spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
+      .catch((error) => {
+        
+        onRequestError(error, "queueSong", id, msg);
+        console.error(error);
+      });
     } else {
       //only retry for failed user
       spotify.queueSong(rooms[msg.roomId].accessTokens[socket.id], msg.song_uri)
@@ -344,7 +342,25 @@ io.on('connection', (socket)=> {
     }
   });
   
-  //TODO: sync song progress across clients
+  socket.on('updateSong', (msg) => {
+    if (socket.id !== rooms[msg.roomId].leader) {return}
+    for (var id in rooms[msg.roomId].sockets) {
+      spotify.getStatus(rooms[msg.roomId].accessTokens[id])
+      .then((data) => {
+        if (data.item.uri !== msg.playerStatus.item.uri) //not playing the same song
+          spotify.start(rooms[msg.roomId].accessTokens[id], msg.playerStatus.item.uri)
+          .then(() => {
+            spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
+          })
+        if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) //playback time descrepencey >5s
+          spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
+
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  });
+
   socket.on('seekTrack', (msg) => {
     //console.log("seekTrack", msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}

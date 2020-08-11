@@ -233,3 +233,41 @@ module.exports.previous = function (access_token) {
         req.end();
     });
 }
+
+module.exports.start = async function (access_token, uri) {
+    return new Promise((resolve, reject) => {
+        const data = JSON.stringify({
+            context_uri: uri
+        });
+        let options = {
+            hostname: 'api.spotify.com',
+            path: '/v1/me/player/play',
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        }
+        const req = https.request(options, (res) => {
+            //console.log("play:", res.statusCode);
+            res.on('data', d => {
+                data += d;
+            })
+            
+            res.on('end', ()=> {
+                if (res.statusCode === 204 ) {
+                    resolve(true);
+                }else {
+                    reject(JSON.parse(data).error);
+                }
+                
+            });
+            
+        });
+        req.on('error', (error) => {
+            reject(new Error(error));
+        })
+
+        req.write(data);
+        req.end();
+    })
+}

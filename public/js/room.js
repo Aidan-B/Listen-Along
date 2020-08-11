@@ -229,11 +229,17 @@ function incrementProgress() {
 };
 function updateProgress() {
     getPlayerStatus().then((data) => {
-        //console.log(data)
+        // console.log(data)
         max = data.item.duration_ms;
         val = data.progress_ms;
         $('#progressBar').prop('max', max);
-        
+
+        if (leader) {
+            socket.emit('updateSong', {
+                roomId: roomId,
+                playerStatus: data
+            });
+        } 
     });
 }
 let val = 0;
