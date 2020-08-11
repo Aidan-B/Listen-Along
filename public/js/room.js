@@ -202,7 +202,6 @@ function enableButtons() {
             } 
         });
     });
-
 }
 
 

@@ -236,9 +236,10 @@ module.exports.previous = function (access_token) {
 
 module.exports.start = async function (access_token, uri) {
     return new Promise((resolve, reject) => {
-        const data = JSON.stringify({
+        const write = JSON.stringify({
             context_uri: uri
         });
+        let data = "";
         let options = {
             hostname: 'api.spotify.com',
             path: '/v1/me/player/play',
@@ -248,7 +249,7 @@ module.exports.start = async function (access_token, uri) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("play:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -267,7 +268,7 @@ module.exports.start = async function (access_token, uri) {
             reject(new Error(error));
         })
 
-        req.write(data);
+        req.write(write);
         req.end();
     })
 }
