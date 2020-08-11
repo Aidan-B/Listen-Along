@@ -344,16 +344,24 @@ io.on('connection', (socket)=> {
   
   socket.on('updateSong', (msg) => {
     if (socket.id !== rooms[msg.roomId].leader) {return}
+    console.log(rooms[msg.roomId].sockets)
     for (var id in rooms[msg.roomId].sockets) {
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
       .then((data) => {
         if (data.item.uri !== msg.playerStatus.item.uri) //not playing the same song
           spotify.start(rooms[msg.roomId].accessTokens[id], msg.playerStatus.item.uri)
           .then(() => {
-            spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
+            spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms).catch((error) => {
+              console.error(error)
+            })
+          }).catch((error) => {
+            console.error(error)
           })
         if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) //playback time descrepencey >5s
           spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
+          .catch((error) => {
+            console.error(error)
+          })
 
       }).catch((error) => {
         console.error(error);

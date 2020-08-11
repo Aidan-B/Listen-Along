@@ -232,7 +232,7 @@ function updateProgress() {
         max = data.item.duration_ms;
         val = data.progress_ms;
         $('#progressBar').prop('max', max);
-
+        console.log(leader)
         if (leader) {
             socket.emit('updateSong', {
                 roomId: roomId,
