@@ -221,7 +221,7 @@ io.on('connection', (socket)=> {
   
   
   socket.on('previous', (msg) => {
-    //console.log("play", msg);
+    console.log(`user ${socket.id} - previous:`, msg);
     if (socket.id !== rooms[msg.roomId].leader) {return}
     if (msg.retry !== true){
       let id = rooms[msg.roomId].leader;
@@ -242,7 +242,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('play', (msg) => {
-    //console.log("play", msg);
+    console.log(`user ${socket.id} - play:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
@@ -265,7 +265,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('pause', (msg) => {
-    //console.log("pause", msg);
+    console.log(`user ${socket.id} - pause:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
 		if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
@@ -287,7 +287,7 @@ io.on('connection', (socket)=> {
 	});
 
   socket.on('next', (msg) => {
-    //console.log("play", msg);
+    console.log(`user ${socket.id} - next:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
     let id = rooms[msg.roomId].leader;
@@ -309,7 +309,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('getStatus', (msg) => {
-    //console.log("getStatus", msg);
+    console.log(`user ${socket.id} - getStatus:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     spotify.getStatus(msg.access_token)
       .then((data) => {
@@ -320,7 +320,7 @@ io.on('connection', (socket)=> {
 	});
 
 	socket.on('queueSong', (msg) => {
-    //console.log("queueSong", msg);
+    console.log(`user ${socket.id} - queueSong:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       let id = rooms[msg.roomId].leader;
@@ -340,6 +340,7 @@ io.on('connection', (socket)=> {
   });
   
   socket.on('updateSong', (msg) => {
+    console.log(`user ${socket.id} - updateSong:`, msg);
     if (socket.id !== rooms[msg.roomId].leader) {return}
     for (var id in rooms[msg.roomId].sockets) {
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
@@ -366,7 +367,7 @@ io.on('connection', (socket)=> {
   });
 
   socket.on('seekTrack', (msg) => {
-    //console.log("seekTrack", msg);
+    console.log(`user ${socket.id} - seekTrack:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
     if (msg.retry !== true){
       for (var id in rooms[msg.roomId].sockets) {
@@ -388,7 +389,7 @@ io.on('connection', (socket)=> {
   });
 
   socket.on('settings', (msg) => {
-    //console.log("seekTrack", msg);
+    console.log(`user ${socket.id} - settings:`, msg);
     if (socket.id !== rooms[msg.roomId].leader) {return}
     rooms[msg.roomId].settings = msg.settings;
   

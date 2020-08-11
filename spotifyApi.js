@@ -12,7 +12,7 @@ module.exports.play = async function (access_token) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("play:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -46,7 +46,7 @@ module.exports.pause = function (access_token) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("pause:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -79,7 +79,7 @@ module.exports.getStatus = function (access_token) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("getStatus:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -88,7 +88,7 @@ module.exports.getStatus = function (access_token) {
                 if (res.statusCode === 200 ) {
                     resolve(JSON.parse(data));
                 }else {
-                    reject(res.statusCode);
+                    reject(JSON.parse(data));
                 }
             });
             
@@ -112,7 +112,7 @@ module.exports.queueSong = function (access_token, track_uri) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("queueSong:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -146,7 +146,7 @@ module.exports.seek = function (access_token, position_ms) {
             }
         }
         const req = https.request(options, (res) => {
-            //console.log("play:", res.statusCode);
+            console.log("seek:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -180,6 +180,7 @@ module.exports.next = function (access_token) {
             }
         }
         const req = https.request(options, (res) => {
+            console.log("next:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -213,6 +214,7 @@ module.exports.previous = function (access_token) {
             }
         }
         const req = https.request(options, (res) => {
+            console.log("previous:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
@@ -250,7 +252,7 @@ module.exports.start = async function (access_token, uri) {
             }
         }
         const req = https.request(options, (res) => {
-            console.log("play:", res.statusCode);
+            console.log("start:", res.statusCode);
             res.on('data', d => {
                 data += d;
             })
