@@ -340,7 +340,7 @@ io.on('connection', (socket)=> {
   });
   
   socket.on('updateSong', (msg) => {
-    console.log(`user ${socket.id} - updateSong:`, msg);
+    console.log(`user ${socket.id} - updateSong`);
     if (socket.id !== rooms[msg.roomId].leader) {return}
     for (var id in rooms[msg.roomId].sockets) {
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
