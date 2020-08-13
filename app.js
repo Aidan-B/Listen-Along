@@ -412,7 +412,7 @@ io.on('connection', (socket)=> {
   socket.on('updateSong', (msg) => {
     if (socket.id !== rooms[msg.roomId].leader) {return} //Only sync based on leader
     console.log(`user ${socket.id} - updateSong`);
-    console.log(rooms);
+    console.log(rooms[msg.roomId].sockets);
     for (var id in rooms[msg.roomId].sockets) {
       console.log(`id: ${id}, leader is ${rooms[msg.roomId].leader}`)
       if (id === rooms[msg.roomId].leader) {return} //No need to change leader's playback
