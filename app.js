@@ -413,6 +413,7 @@ io.on('connection', (socket)=> {
     if (socket.id !== rooms[msg.roomId].leader) {return} //Only sync based on leader
     console.log(`user ${socket.id} - updateSong`);
     for (var id in rooms[msg.roomId].sockets) {
+      console.log(`id: ${id}, leader is ${rooms[msg.roomId].leader}`)
       if (id === rooms[msg.roomId].leader) {return} //No need to change leader's playback
 
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
