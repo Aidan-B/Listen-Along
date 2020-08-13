@@ -290,7 +290,7 @@ let max = 10000;
 updateStatus();
 let incrementInterval = window.setInterval(incrementProgress, 1000); //increment progress every 1 second
 
-window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds to ensure we are in sync with spotify
+window.setInterval(updateStatus, 15000); //refresh progress every 5 seconds to ensure we are in sync with spotify
 
 });
  
