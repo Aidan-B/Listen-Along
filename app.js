@@ -10,6 +10,7 @@ var cookieParser = require('cookie-parser');
 
 var spotify = require('./spotifyApi');
 const { settings } = require('cluster');
+const { TIMEOUT } = require('dns');
 
 let clientInfo = process.env
 if (clientInfo.client_id == null || clientInfo.client_id == "") {
@@ -181,12 +182,14 @@ io.on('connection', (socket)=> {
 
   async function makeRequest(command, msg, id) {
     new Promise((resolve, reject) => {
-
+      let updatePause = 250;
+      //TODO: We have lots of timeouts here waiting for spotify to update the status of its api.
+      //We should implement local versions of things, then update them after a longer timer as an error correction measure
       switch (command) {
         case "play":
           spotify.play(rooms[msg.roomId].accessTokens[id])
           .then(() => {
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -197,7 +200,7 @@ io.on('connection', (socket)=> {
         case "pause":
           spotify.pause(rooms[msg.roomId].accessTokens[id])
           .then(() => {
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -209,7 +212,7 @@ io.on('connection', (socket)=> {
           spotify.getStatus(rooms[msg.roomId].accessTokens[id])
           .then((data) => {
             console.log(data);
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -220,7 +223,7 @@ io.on('connection', (socket)=> {
         case "queueSong":
           spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
           .then(() => {
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -231,7 +234,7 @@ io.on('connection', (socket)=> {
         case "seekTrack":
           spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.position_ms)
           .then(() => {
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -242,7 +245,8 @@ io.on('connection', (socket)=> {
         case "next":
           spotify.next(rooms[msg.roomId].accessTokens[id])
           .then(() => {
-            resolve();
+            //TODO: implement a local queue, and increase this as an error check rather than a workaround
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -253,7 +257,8 @@ io.on('connection', (socket)=> {
         case "previous":
           spotify.previous(rooms[msg.roomId].accessTokens[id])
           .then(() => {
-            resolve();
+            //TODO: implement a local queue, and increase this as an error check rather than a workaround
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -264,7 +269,7 @@ io.on('connection', (socket)=> {
         case "start":
           spotify.start(rooms[msg.roomId].accessTokens[id])
           .then(() => {
-            resolve();
+            setTimeout(() => {resolve()}, updatePause);
           })
           .catch((error) => {
             console.error(error);
@@ -276,13 +281,8 @@ io.on('connection', (socket)=> {
           break;
       }
     }).then(() => {
-      console.log('did it...')
-      //TODO: This is creating a bug on the 'next' call that clears the users queue and resumes the track
-      //It seems almost like the time it takes to call next, then have the status change on spotify before
-      //checking again is what is breaking it
       io.to(msg.roomId).emit('updateStatus');
     }).catch((error) => {
-      console.log('didnt do it...')
       if (msg.retry != true) { onRequestError(error, command, id, msg); }
     });  
   }
@@ -397,6 +397,8 @@ io.on('connection', (socket)=> {
     if (socket.id !== rooms[msg.roomId].leader) {return}
 
     for (var id in rooms[msg.roomId].sockets) {
+      if (id === rooms[msg.roomId].leader) {return} //No need to change leader's playback
+
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
       .then((data) => {
 

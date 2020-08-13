@@ -10,7 +10,6 @@ let leader = false //Assume that you aren't the leader unless the server says ot
 let settings = {
     controlPlayback: false
 }
-
 $('#roomId').text(roomId);
 // $('#accessToken').text(access_token);
 // $('#refreshToken').text(refresh_token);
@@ -121,6 +120,7 @@ function enableButtons() {
     $('#searchButton').prop('disabled', false);
 
     $('#previous').click(function(){
+        val = 0;
         socket.emit('previous', {
             roomId: roomId,
             access_token: access_token 
@@ -142,6 +142,7 @@ function enableButtons() {
     });
     
     $('#next').click(function(){
+        val = 0;
         socket.emit('next', {
             roomId: roomId,
             access_token: access_token 
@@ -158,12 +159,23 @@ function enableButtons() {
     $('#progressBar').click(function(e) {
         let progress = (e.pageX - $(this).position().left) / $(this).width();
         val = Math.floor(progress * max)
-    
-        socket.emit('seekTrack', {
-            roomId: roomId,
-            access_token: access_token,
-            position_ms: val
-        })
+        if (val > max - 100) { //if you click the end of the track we actually want to go to the next track
+            val = 0;
+            socket.emit('next', {
+                roomId: roomId,
+                access_token: access_token 
+            });
+        } else {
+            if (val < 0) {
+            val = 1;
+        }
+
+            socket.emit('seekTrack', {
+                roomId: roomId,
+                access_token: access_token,
+                position_ms: val
+            })
+        }
     });
 
     //Spotify API calls
@@ -227,6 +239,7 @@ function getPlayerStatus() {
 function incrementProgress() {
     val += 1000;
     $('#progressBar').val(val);
+    if (val >= max) { updateStatus() }
 };
 function updateStatus() {
     getPlayerStatus().then((data) => {
@@ -240,7 +253,10 @@ function updateStatus() {
                 playerStatus: data
             });
         } 
-        
+        window.clearInterval(incrementInterval);
+        if (data.is_playing)
+            incrementInterval = window.setInterval(incrementProgress, 1000);
+
         let artists = data.item.artists.map(e => e.name).join(", ");
         $('#current-song').html(
             playbackTemplate(data.item.album.images[1].url, data.item.name, artists)                
@@ -250,7 +266,7 @@ function updateStatus() {
 let val = 0;
 let max = 10000;
 updateStatus();
-window.setInterval(incrementProgress, 1000); //increment progress every 1 second
+let incrementInterval = window.setInterval(incrementProgress, 1000); //increment progress every 1 second
 //TODO: We can do better than this. Perhaps look when the song ends and when playback changes, check sync less frequently
 //window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds
 
