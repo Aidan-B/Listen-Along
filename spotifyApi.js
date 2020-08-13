@@ -134,7 +134,7 @@ module.exports.queueSong = function (access_token, track_uri) {
     })
 }
 
-module.exports.seek = function (access_token, position_ms) {
+module.exports.seekTrack = function (access_token, position_ms) {
     return new Promise((resolve, reject) => {
         let data = "";
         let options = {
