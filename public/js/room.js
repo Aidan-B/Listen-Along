@@ -262,7 +262,7 @@ function incrementProgress() {
 };
 function updateStatus() {
     getPlayerStatus().then((data) => {
-        // console.log(data)
+        console.log(data)
         max = data.item.duration_ms;
         val = data.progress_ms;
         $('#progressBar').prop('max', max);
@@ -272,12 +272,12 @@ function updateStatus() {
                 playerStatus: data
             });
         } 
-        
         window.clearInterval(incrementInterval);
         if (data.is_playing){
-            incrementProgress();    
+            incrementProgress();
             incrementInterval = window.setInterval(incrementProgress, 1000);
-        }            
+        }
+            
 
         let artists = data.item.artists.map(e => e.name).join(", ");
         $('#current-song').html(
@@ -290,8 +290,10 @@ let max = 10000;
 updateStatus();
 let incrementInterval = window.setInterval(incrementProgress, 1000); //increment progress every 1 second
 
-});
+window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds to ensure we are in sync with spotify
 
+});
+ 
 //Return time in MM:SS format
 function formatTime(millis) {
     console.log(millis);
