@@ -88,11 +88,11 @@ socket.on('setup', () => {
         refresh_token: refresh_token
     });
 });
-$(window).bind('beforeunload', function(){
-    socket.emit('beforeDisconnect', {
-        roomId: roomId
-    });
-});
+// $(window).bind('beforeunload', function(){
+//     socket.emit('beforeDisconnect', {
+//         roomId: roomId
+//     });
+// });
 
 function disableButtons() {
     $('#previous').off('click');
