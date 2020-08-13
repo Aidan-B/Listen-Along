@@ -179,86 +179,116 @@ http.listen(port, () => {
 io.on('connection', (socket)=> {
 
 
-  function makeRequest(command, msg, id) {
-    let has_error;
-    switch (command) {
-      case "play":
-        spotify.play(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-    
-      case "pause":
-        spotify.pause(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
+  async function makeRequest(command, msg, id) {
+    new Promise((resolve, reject) => {
 
-      case "getStatus":
-        spotify.getStatus(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-    
-      case "queueSong":
-        spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-    
-      case "seek":
-        spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.position_ms)
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
+      switch (command) {
+        case "play":
+          spotify.play(rooms[msg.roomId].accessTokens[id])
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+      
+        case "pause":
+          spotify.pause(rooms[msg.roomId].accessTokens[id])
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+
+        case "getStatus":
+          spotify.getStatus(rooms[msg.roomId].accessTokens[id])
+          .then((data) => {
+            console.log(data);
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+      
+        case "queueSong":
+          spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+      
+        case "seekTrack":
+          spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.position_ms)
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+          
+        case "next":
+          spotify.next(rooms[msg.roomId].accessTokens[id])
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
         
-      case "next":
-        spotify.next(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-      
-      case "previous":
-        spotify.previous(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-      
-      case "start":
-        spotify.start(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          has_error = true;
-          console.error(error);
-        });
-        break;
-      
-      default:
-        break;
-    }
-
-    if (has_error) {
+        case "previous":
+          spotify.previous(rooms[msg.roomId].accessTokens[id])
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+        
+        case "start":
+          spotify.start(rooms[msg.roomId].accessTokens[id])
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            console.error(error);
+            reject(error);
+          });
+          break;
+        
+        default:
+          break;
+      }
+    }).then(() => {
+      console.log('did it...')
+      //TODO: This is creating a bug on the 'next' call that clears the users queue and resumes the track
+      //It seems almost like the time it takes to call next, then have the status change on spotify before
+      //checking again is what is breaking it
+      io.to(msg.roomId).emit('updateStatus');
+    }).catch((error) => {
+      console.log('didnt do it...')
       if (msg.retry != true) { onRequestError(error, command, id, msg); }
-    }
-      
-    
+    });  
   }
 
   function onRequestError(error, action, id, msg) {
-    console.error(error.setatus, spotify.getStatusCode(error.status))
+    console.error(error.status, spotify.getStatusCode(error.status))
     if (error.status === 401 && error.message === "The access token expired") {
       io.to(id).emit('refreshToken', { 
         retry: {

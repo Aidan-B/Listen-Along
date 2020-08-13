@@ -88,6 +88,8 @@ socket.on('setup', () => {
         refresh_token: refresh_token
     });
 });
+
+socket.on('updateStatus', () => { updateStatus() });
 // $(window).bind('beforeunload', function(){
 //     socket.emit('beforeDisconnect', {
 //         roomId: roomId
@@ -226,9 +228,9 @@ function incrementProgress() {
     val += 1000;
     $('#progressBar').val(val);
 };
-function updateProgress() {
+function updateStatus() {
     getPlayerStatus().then((data) => {
-        // console.log(data)
+        console.log(data)
         max = data.item.duration_ms;
         val = data.progress_ms;
         $('#progressBar').prop('max', max);
@@ -247,9 +249,10 @@ function updateProgress() {
 }
 let val = 0;
 let max = 10000;
-updateProgress();
+updateStatus();
 window.setInterval(incrementProgress, 1000); //increment progress every 1 second
-window.setInterval(updateProgress, 5000); //refresh progress every 5 seconds
+//TODO: We can do better than this. Perhaps look when the song ends and when playback changes, check sync less frequently
+//window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds
 
 });
 
