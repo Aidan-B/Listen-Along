@@ -412,9 +412,12 @@ io.on('connection', (socket)=> {
   socket.on('updateSong', (msg) => {
     console.log(`user ${socket.id} - updateSong`, msg.roomId);
     console.log(rooms[msg.roomId]);
+    
     if (socket.id !== rooms[msg.roomId].leader) {return} //Only sync based on leader
     
-    for (var id in rooms[msg.roomId].sockets) {
+    console.log(`${Object.keys(rooms[msg.roomId].sockets)} in room ${msg.roomId}` );
+
+    Object.keys(rooms[msg.roomId].sockets).forEach((id) => {
       console.log(`id: ${id}, leader is ${rooms[msg.roomId].leader}`)
       if (id === rooms[msg.roomId].leader) {return} //No need to change leader's playback
 
@@ -451,7 +454,7 @@ io.on('connection', (socket)=> {
       }).catch((error) => {
         console.error(error);
       });
-    }
+    })
   });
 
   //Handle dissconection of users
