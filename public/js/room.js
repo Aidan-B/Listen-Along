@@ -48,7 +48,6 @@ socket.on('refreshToken', (msg) => {
 });
 
 socket.on('leader', (msg) => {
-    //TODO: Ensure that the settings are correct when leadership is handed off to a different user
     leader = msg;
     if (leader) {
         enableButtons();
@@ -63,6 +62,7 @@ socket.on('leader', (msg) => {
                 }
             })
         });
+        $('#controlPlayback').prop('checked', settings.controlPlayback);
         $(".leader-settings").css('visibility', 'visible')
     } else if (settings.controlPlayback) {
         enableButtons();
@@ -257,11 +257,12 @@ function getPlayerStatus() {
 function incrementProgress() {
     val += 1000;
     $('#progressBar').val(val);
+    $('#timestamp').html(`${formatTime(val)}/${formatTime(max)}`)
     if (val >= max) { updateStatus() }
 };
 function updateStatus() {
     getPlayerStatus().then((data) => {
-        console.log(data)
+        // console.log(data)
         max = data.item.duration_ms;
         val = data.progress_ms;
         $('#progressBar').prop('max', max);
@@ -271,9 +272,12 @@ function updateStatus() {
                 playerStatus: data
             });
         } 
+        
         window.clearInterval(incrementInterval);
-        if (data.is_playing)
+        if (data.is_playing){
+            incrementProgress();    
             incrementInterval = window.setInterval(incrementProgress, 1000);
+        }            
 
         let artists = data.item.artists.map(e => e.name).join(", ");
         $('#current-song').html(
@@ -286,9 +290,16 @@ let max = 10000;
 updateStatus();
 let incrementInterval = window.setInterval(incrementProgress, 1000); //increment progress every 1 second
 
-window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds to ensure we are in sync with spotify
-
 });
+
+//Return time in MM:SS format
+function formatTime(millis) {
+    console.log(millis);
+    let minutes = Math.floor(millis / 60000);
+    let seconds = ("0" + (Math.floor((millis % 60000) / 1000)).toFixed(0)).slice(-2);
+    console.log(`${minutes}:${seconds}`)
+    return `${minutes}:${seconds}`;
+}
 
 function cardTemplate(uri, album, name, artists) {
 return `<div class="col mb-4">
