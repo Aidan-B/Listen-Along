@@ -316,7 +316,7 @@ io.on('connection', (socket)=> {
 	socket.emit('setup'); //Connect user to room
 	
 	socket.on('accessToken', (msg)=>{
-
+    //TODO: ask user to choose device to start playback on, if one is not available.
 		socket.join(msg.roomId);
 		if (rooms[msg.roomId].accessTokens == undefined) {rooms[msg.roomId].accessTokens = {};}
 		if (rooms[msg.roomId].refreshTokens == undefined) {rooms[msg.roomId].refreshTokens = {};}
