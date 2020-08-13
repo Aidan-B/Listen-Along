@@ -232,7 +232,7 @@ io.on('connection', (socket)=> {
           break;
       
         case "seekTrack":
-          spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.position_ms)
+          spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.progress_ms)
           .then(() => {
             setTimeout(() => {resolve()}, updatePause);
           })
@@ -267,7 +267,7 @@ io.on('connection', (socket)=> {
           break;
         
         case "start":
-          spotify.start(rooms[msg.roomId].accessTokens[id])
+          spotify.start(rooms[msg.roomId].accessTokens[id], msg.uri)
           .then(() => {
             setTimeout(() => {resolve()}, updatePause);
           })
@@ -282,8 +282,10 @@ io.on('connection', (socket)=> {
       }
     }).then(() => {
       io.to(msg.roomId).emit('updateStatus');
+      return;
     }).catch((error) => { 
       if (msg.retry != true) { onRequestError(error, command, id, msg); }
+      return
     });  
   }
 
@@ -325,7 +327,7 @@ io.on('connection', (socket)=> {
     }
 		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
 		rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token
-
+    io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
     console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
   })
   
@@ -404,22 +406,30 @@ io.on('connection', (socket)=> {
       .then((data) => {
 
         if (data.item.uri !== msg.playerStatus.item.uri) {//not playing the same song as leader
+          makeRequest('start', { 
+            roomId: msg.roomId,
+            uri: msg.playerStatus.item.uri 
+          }, id).then(()=>{
 
-          spotify.start(rooms[msg.roomId].accessTokens[id], msg.playerStatus.item.uri)
-          .then(() => {
-            spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms).catch((error) => {
+            makeRequest('seekTrack', {
+              roomId: msg.roomId,
+              progress_ms: msg.playerStatus.progress_ms 
+            }, id)
+            .catch((error) => {
               console.error(error)
-            })
-          }).catch((error) => {
-            console.error(error)
+            });
           })
-        }
-
-        if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) { //playback time descrepencey >5s from leader
-          spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
           .catch((error) => {
             console.error(error)
-          })
+          });
+        } else if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) { //playback time descrepencey >5s from leader
+          makeRequest('seekTrack', {
+            roomId: msg.roomId,
+            progress_ms: msg.playerStatus.progress_ms 
+          }, id)
+          .catch((error) => {
+            console.error(error)
+          });
         }
 
       }).catch((error) => {
