@@ -178,6 +178,85 @@ http.listen(port, () => {
 
 io.on('connection', (socket)=> {
 
+
+  function makeRequest(command, msg, id) {
+    let has_error;
+    switch (command) {
+      case "play":
+        spotify.play(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+    
+      case "pause":
+        spotify.pause(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+
+      case "getStatus":
+        spotify.getStatus(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+    
+      case "queueSong":
+        spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+    
+      case "seek":
+        spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.position_ms)
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+        
+      case "next":
+        spotify.next(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+      
+      case "previous":
+        spotify.previous(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+      
+      case "start":
+        spotify.start(rooms[msg.roomId].accessTokens[id])
+        .catch((error) => {
+          has_error = true;
+          console.error(error);
+        });
+        break;
+      
+      default:
+        break;
+    }
+
+    if (has_error) {
+      if (msg.retry != true) { onRequestError(error, command, id, msg); }
+    }
+      
+    
+  }
+
   function onRequestError(error, action, id, msg) {
     if (error.status === 401 && error.message === "The access token expired") {
       io.to(id).emit('refreshToken', { 
@@ -220,93 +299,44 @@ io.on('connection', (socket)=> {
   
   
   
+  //Playback control
   socket.on('previous', (msg) => {
     console.log(`user ${socket.id} - previous:`, msg);
-    if (socket.id !== rooms[msg.roomId].leader) {return}
-    if (msg.retry !== true){
-      let id = rooms[msg.roomId].leader;
-      spotify.previous(rooms[msg.roomId].accessTokens[id])
-      .catch((error) => {
-        
-        onRequestError(error, "previous", id, msg);
-        console.error(error);
-      });
-    } else {
-      //only retry for failed user
-      spotify.previous(rooms[msg.roomId].accessTokens[socket.id])
-      .catch((error) => {
-        console.error(error);
-      })
-    }
-		
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
+    makeRequest("previous", msg, rooms[msg.roomId].leader)
 	});
 
 	socket.on('play', (msg) => {
     console.log(`user ${socket.id} - play:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.play(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          
-          onRequestError(error, "play", id, msg);
-          console.error(error);
-        });
-      }
-    } else {
-      //only retry for failed user
-      spotify.play(rooms[msg.roomId].accessTokens[socket.id])
-      .catch((error) => {
-        console.error(error);
-      })
-    }
-		
+    makeRequest("play", msg, rooms[msg.roomId].leader)		
 	});
 
 	socket.on('pause', (msg) => {
     console.log(`user ${socket.id} - pause:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-		if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.pause(rooms[msg.roomId].accessTokens[id])
-        .catch((error) => {
-          
-          onRequestError(error, "pause", id, msg);
-          console.error(error);
-        });
-      }
-    } else {
-      //only retry for failed user
-      spotify.pause(rooms[msg.roomId].accessTokens[socket.id])
-      .catch((error) => {
-        console.error(error);
-      })
-    }
-	});
-
+    makeRequest("pause", msg, rooms[msg.roomId].leader)
+  });
+  
   socket.on('next', (msg) => {
     console.log(`user ${socket.id} - next:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    if (msg.retry !== true){
-    let id = rooms[msg.roomId].leader;
-    
-      spotify.next(rooms[msg.roomId].accessTokens[id])
-      .catch((error) => {
-        
-        onRequestError(error, "next", id, msg);
-        console.error(error);
-      });
-    } else {
-      //only retry for failed user
-      spotify.next(rooms[msg.roomId].accessTokens[socket.id])
-      .catch((error) => {
-        console.error(error);
-      })
-    }
-		
-	});
+    makeRequest("next", msg, rooms[msg.roomId].leader)
+  });
+  
+  socket.on('seekTrack', (msg) => {
+    console.log(`user ${socket.id} - seekTrack:`, msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
+    makeRequest("seekTrack", msg, rooms[msg.roomId].leader)
+  });
+
+  socket.on('queueSong', (msg) => {
+    console.log(`user ${socket.id} - queueSong:`, msg);
+    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
+    makeRequest("queueSong", msg, rooms[msg.roomId].leader)
+  });
+
+
 
 	socket.on('getStatus', (msg) => {
     console.log(`user ${socket.id} - getStatus:`, msg);
@@ -318,47 +348,45 @@ io.on('connection', (socket)=> {
         console.error(error);
       });
 	});
-
-	socket.on('queueSong', (msg) => {
-    console.log(`user ${socket.id} - queueSong:`, msg);
-    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    if (msg.retry !== true){
-      let id = rooms[msg.roomId].leader;
-      spotify.queueSong(rooms[msg.roomId].accessTokens[id], msg.song_uri)
-      .catch((error) => {
-        
-        onRequestError(error, "queueSong", id, msg);
-        console.error(error);
-      });
-    } else {
-      //only retry for failed user
-      spotify.queueSong(rooms[msg.roomId].accessTokens[socket.id], msg.song_uri)
-      .catch((error) => {
-        console.error(error);
-      })
-    }
-  });
   
+
+  //Update settings across clients
+  socket.on('settings', (msg) => {
+    console.log(`user ${socket.id} - settings:`, msg);
+    if (socket.id !== rooms[msg.roomId].leader) {return}
+    rooms[msg.roomId].settings = msg.settings;
+  
+    io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
+  });
+
+
+  //Sync songs between clients based on leader
   socket.on('updateSong', (msg) => {
     console.log(`user ${socket.id} - updateSong`);
     if (socket.id !== rooms[msg.roomId].leader) {return}
+
     for (var id in rooms[msg.roomId].sockets) {
       spotify.getStatus(rooms[msg.roomId].accessTokens[id])
       .then((data) => {
-        if (data.item.uri !== msg.playerStatus.item.uri) //not playing the same song
+
+        if (data.item.uri !== msg.playerStatus.item.uri) {//not playing the same song as leader
+
           spotify.start(rooms[msg.roomId].accessTokens[id], msg.playerStatus.item.uri)
           .then(() => {
-            spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms).catch((error) => {
+            spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms).catch((error) => {
               console.error(error)
             })
           }).catch((error) => {
             console.error(error)
           })
-        if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) //playback time descrepencey >5s
-          spotify.seek(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
+        }
+
+        if (Math.abs(data.progress_ms - msg.playerStatus.item.progress_ms) > 5000) { //playback time descrepencey >5s from leader
+          spotify.seekTrack(rooms[msg.roomId].accessTokens[id], msg.playerStatus.progress_ms)
           .catch((error) => {
             console.error(error)
           })
+        }
 
       }).catch((error) => {
         console.error(error);
@@ -366,47 +394,22 @@ io.on('connection', (socket)=> {
     }
   });
 
-  socket.on('seekTrack', (msg) => {
-    console.log(`user ${socket.id} - seekTrack:`, msg);
-    if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    if (msg.retry !== true){
-      for (var id in rooms[msg.roomId].sockets) {
-      
-        spotify.seek(rooms[msg.roomId].accessTokens[id], msg.position_ms)
-        .catch((error) => {
-          
-          onRequestError(error, "seekTrack", id, msg);
-          console.error(error);
-        });
+
+
+  //Handle dissconection of users
+	// socket.on('beforeDisconnect', (msg) => {
+     //Do this on reload or similar
+  // });
+  socket.on('disconnecting', () => { //Disable from room if appropriate
+    Object.keys(socket.rooms).forEach(element => {
+      if (rooms[element].leader !== undefined && rooms[element].leader == socket.id) {
+        assignNewLeader(socket.id, element);
       }
-    } else {
-      //only retry for failed user
-      spotify.seek(rooms[msg.roomId].accessTokens[socket.id], msg.position_ms)
-      .catch((error) => {
-        console.error(error);
-      })
-    }
+    });
   });
-
-  socket.on('settings', (msg) => {
-    console.log(`user ${socket.id} - settings:`, msg);
-    if (socket.id !== rooms[msg.roomId].leader) {return}
-    rooms[msg.roomId].settings = msg.settings;
-  
-    io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
-    
-  });
-
-	socket.on('beforeDisconnect', (msg) => {
-    if (rooms[msg.roomId].leader == socket.id) {
-      assignNewLeader(socket.id, msg.roomId);
-    }
-		//console.log("about to disconnect")
-	});
 	socket.on('disconnect', () => {
 		console.log('user ' + socket.id + ' disconnected');
-
-		//TODO: remove from room, and disable leader if appropriate
+    //console.log(socket);
 	});
 
 });
