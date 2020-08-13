@@ -318,17 +318,31 @@ io.on('connection', (socket)=> {
 	socket.on('accessToken', (msg)=>{
 
 		socket.join(msg.roomId);
-		if (rooms[msg.roomId].accessTokens == undefined) {rooms[msg.roomId].accessTokens = {}}
-		if (rooms[msg.roomId].refreshTokens == undefined) {rooms[msg.roomId].refreshTokens = {}}
+		if (rooms[msg.roomId].accessTokens == undefined) {rooms[msg.roomId].accessTokens = {};}
+		if (rooms[msg.roomId].refreshTokens == undefined) {rooms[msg.roomId].refreshTokens = {};}
+		if (rooms[msg.roomId].users == undefined) {rooms[msg.roomId].users = {};}
 		if (rooms[msg.roomId].leader == undefined) {
       io.to(socket.id).emit('leader', true);
-      rooms[msg.roomId].leader = socket.id
+      rooms[msg.roomId].leader = socket.id;
       rooms[msg.roomId].settings = { controlPlayback: false }
     }
-		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token
-		rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token
-    io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
-    console.log('User ' + socket.id + ' connected to room ' + msg.roomId);
+		rooms[msg.roomId].accessTokens[socket.id] = msg.access_token;
+    rooms[msg.roomId].refreshTokens[socket.id] = msg.refresh_token;
+		spotify.profile(msg.access_token).then((data) => {
+      rooms[msg.roomId].users[socket.id] = data;
+      io.to(msg.roomId).emit('updateSettings', rooms[msg.roomId].settings)
+      console.log(
+        
+      );
+      
+
+      io.to(msg.roomId).emit('updateUsers', Object.keys(rooms[msg.roomId].users).map((key) => {
+                                              return rooms[msg.roomId].users[key].display_name;
+                                            }));
+      console.log(`User ${data.display_name} with id ${socket.id} connected to room  ${msg.roomId}`);
+    });
+    
+    
   })
   
   
@@ -396,9 +410,8 @@ io.on('connection', (socket)=> {
 
   //Sync songs between clients based on leader
   socket.on('updateSong', (msg) => {
+    if (socket.id !== rooms[msg.roomId].leader) {return} //Only sync based on leader
     console.log(`user ${socket.id} - updateSong`);
-    if (socket.id !== rooms[msg.roomId].leader) {return}
-
     for (var id in rooms[msg.roomId].sockets) {
       if (id === rooms[msg.roomId].leader) {return} //No need to change leader's playback
 
@@ -444,13 +457,20 @@ io.on('connection', (socket)=> {
   // });
   socket.on('disconnecting', () => { //Disable from room if appropriate
     Object.keys(socket.rooms).forEach(element => {
+      
       if (rooms[element].leader !== undefined && rooms[element].leader == socket.id) {
         assignNewLeader(socket.id, element);
       }
+      if (rooms[element].accessTokens !== undefined && rooms[element].accessTokens[socket.id] !== undefined) {
+        delete rooms[element].accessTokens[socket.id];
+        delete rooms[element].refreshTokens[socket.id];
+        delete rooms[element].users[socket.id];
+      }
+      console.log(rooms[element]);
     });
   });
 	socket.on('disconnect', () => {
-		console.log('user ' + socket.id + ' disconnected');
+    console.log('user ' + socket.id + ' disconnected');
     //console.log(socket);
 	});
 
