@@ -48,6 +48,7 @@ socket.on('refreshToken', (msg) => {
 });
 
 socket.on('leader', (msg) => {
+    //TODO: Ensure that the settings are correct when leadership is handed off to a different user
     leader = msg;
     if (leader) {
         enableButtons();
@@ -80,6 +81,9 @@ socket.on('updateSettings', (msg) => {
         disableButtons();
     }
 });
+socket.on('updateUsers', (msg) => {
+    $('#activeUsers').html(`Users: ${msg.join(", ")}`);
+})
 
 
 socket.on('setup', () => {
@@ -187,7 +191,7 @@ function enableButtons() {
             socket.emit('seekTrack', {
                 roomId: roomId,
                 access_token: access_token,
-                position_ms: val
+                progress_ms: val
             })
         }
     });
