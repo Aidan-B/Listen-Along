@@ -282,12 +282,13 @@ io.on('connection', (socket)=> {
       }
     }).then(() => {
       io.to(msg.roomId).emit('updateStatus');
-    }).catch((error) => {
+    }).catch((error) => { 
       if (msg.retry != true) { onRequestError(error, command, id, msg); }
     });  
   }
 
   function onRequestError(error, action, id, msg) {
+    io.to(id).emit('requestError', error);
     console.error(error.status, spotify.getStatusCode(error.status))
     if (error.status === 401 && error.message === "The access token expired") {
       io.to(id).emit('refreshToken', { 
@@ -426,8 +427,6 @@ io.on('connection', (socket)=> {
       });
     }
   });
-
-
 
   //Handle dissconection of users
 	// socket.on('beforeDisconnect', (msg) => {

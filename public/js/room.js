@@ -10,6 +10,8 @@ let leader = false //Assume that you aren't the leader unless the server says ot
 let settings = {
     controlPlayback: false
 }
+let buttonsEnabled = false;
+
 $('#roomId').text(roomId);
 // $('#accessToken').text(access_token);
 // $('#refreshToken').text(refresh_token);
@@ -77,7 +79,7 @@ socket.on('updateSettings', (msg) => {
     } else if (!leader) {
         disableButtons();
     }
-})
+});
 
 
 socket.on('setup', () => {
@@ -88,7 +90,13 @@ socket.on('setup', () => {
     });
 });
 
-socket.on('updateStatus', () => { updateStatus() });
+socket.on('updateStatus', () => { 
+    updateStatus() 
+});
+socket.on('requestError', (error) => {
+    console.error(error);
+})
+
 // $(window).bind('beforeunload', function(){
 //     socket.emit('beforeDisconnect', {
 //         roomId: roomId
@@ -96,6 +104,10 @@ socket.on('updateStatus', () => { updateStatus() });
 // });
 
 function disableButtons() {
+    if (!buttonsEnabled) {
+        return;
+    }
+    buttonsEnabled = false;
     $('#previous').off('click');
     $('#play').off('click');
     $('#pause').off('click');
@@ -113,6 +125,10 @@ function disableButtons() {
 
 
 function enableButtons() {
+    if (buttonsEnabled) {
+        return;
+    }
+    buttonsEnabled = true;
     $('#previous').prop('disabled', false);
     $('#play').prop('disabled', false);
     $('#pause').prop('disabled', false);
@@ -166,9 +182,7 @@ function enableButtons() {
                 access_token: access_token 
             });
         } else {
-            if (val < 0) {
-            val = 1;
-        }
+            if (val < 0) {val = 1;}
 
             socket.emit('seekTrack', {
                 roomId: roomId,
@@ -267,8 +281,8 @@ let val = 0;
 let max = 10000;
 updateStatus();
 let incrementInterval = window.setInterval(incrementProgress, 1000); //increment progress every 1 second
-//TODO: We can do better than this. Perhaps look when the song ends and when playback changes, check sync less frequently
-//window.setInterval(updateStatus, 5000); //refresh progress every 5 seconds
+
+window.setInterval(updateStatus, 10000); //refresh progress every 10 seconds to ensure we are in sync with spotify
 
 });
 
