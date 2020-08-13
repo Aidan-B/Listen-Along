@@ -238,6 +238,11 @@ function updateProgress() {
                 playerStatus: data
             });
         } 
+        
+        let artists = data.item.artists.map(e => e.name).join(", ");
+        $('#current-song').html(
+            playbackTemplate(data.item.album.images[1].url, data.item.name, artists)                
+        );
     });
 }
 let val = 0;
@@ -250,7 +255,7 @@ window.setInterval(updateProgress, 5000); //refresh progress every 5 seconds
 
 function cardTemplate(uri, album, name, artists) {
 return `<div class="col mb-4">
-    <div class="card hoverable" >
+    <div class="card" >
         <a href="#" class="song-link" data-uri="${uri}">
             <img src="${album}"></img>
             <span>${name} - ${artists}</span>
@@ -258,3 +263,11 @@ return `<div class="col mb-4">
     </div>
 </div>`;
 }
+
+function playbackTemplate(album, name, artists) {
+return `<div class="col">
+    <img src="${album}"></img>
+    <p>${name} - ${artists}</p>
+</div>`;
+}
+    

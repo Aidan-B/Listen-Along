@@ -258,6 +258,7 @@ io.on('connection', (socket)=> {
   }
 
   function onRequestError(error, action, id, msg) {
+    console.error(error.setatus, spotify.getStatusCode(error.status))
     if (error.status === 401 && error.message === "The access token expired") {
       io.to(id).emit('refreshToken', { 
         retry: {
