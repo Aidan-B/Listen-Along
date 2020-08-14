@@ -357,13 +357,18 @@ io.on('connection', (socket)=> {
 	socket.on('play', (msg) => {
     console.log(`user ${socket.id} - play:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    makeRequest("play", msg, rooms[msg.roomId].leader)		
+    Object.keys(rooms[msg.roomId].sockets).forEach((id) => {
+      makeRequest("play", msg, id)
+    })
 	});
 
 	socket.on('pause', (msg) => {
     console.log(`user ${socket.id} - pause:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    makeRequest("pause", msg, rooms[msg.roomId].leader)
+    Object.keys(rooms[msg.roomId].sockets).forEach((id) => {
+      makeRequest("pause", msg, id)
+    })
+    
   });
   
   socket.on('next', (msg) => {
@@ -375,7 +380,10 @@ io.on('connection', (socket)=> {
   socket.on('seekTrack', (msg) => {
     console.log(`user ${socket.id} - seekTrack:`, msg);
     if (socket.id !== rooms[msg.roomId].leader && !rooms[msg.roomId].settings.controlPlayback) {return}
-    makeRequest("seekTrack", msg, rooms[msg.roomId].leader)
+    Object.keys(rooms[msg.roomId].sockets).forEach((id) => {
+      makeRequest("seekTrack", msg, id)
+    })
+    
   });
 
   socket.on('queueSong', (msg) => {
@@ -410,12 +418,8 @@ io.on('connection', (socket)=> {
 
   //Sync songs between clients based on leader
   socket.on('updateSong', (msg) => {
-    console.log(`user ${socket.id} - updateSong`, msg.roomId);
-    console.log(rooms[msg.roomId]);
-    
+    console.log(`user ${socket.id} - updateSong:`);
     if (socket.id !== rooms[msg.roomId].leader) {return} //Only sync based on leader
-    
-    console.log(`${Object.keys(rooms[msg.roomId].sockets)} in room ${msg.roomId}` );
 
     Object.keys(rooms[msg.roomId].sockets).forEach((id) => {
       console.log(`id: ${id}, leader is ${rooms[msg.roomId].leader}`)
@@ -472,11 +476,10 @@ io.on('connection', (socket)=> {
         delete rooms[element].refreshTokens[socket.id];
         delete rooms[element].users[socket.id];
       }
-      console.log(rooms[element]);
     });
   });
 	socket.on('disconnect', () => {
-    console.log('user ' + socket.id + ' disconnected');
+    console.log('User ' + socket.id + ' disconnected');
     //console.log(socket);
 	});
 
